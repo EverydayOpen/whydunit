@@ -1,0 +1,25 @@
+# Whydunit
+
+> Find out why your iCloud Drive files won't upload, and fix them without losing a thing.
+
+Whydunit is a free Mac app (macOS 15 or later, Apple silicon and Intel) for iCloud Drive files that won't upload. It scans iCloud Drive, plus Desktop and Documents when they sync to iCloud, reads each item's sync status without reading file contents, and explains every problem in plain English: files waiting to upload, files that exist only on this Mac, iCloud storage full, items too large for iCloud, and sync stalled for the whole Mac.
+
+- Free: every feature, on any number of Macs, with no account, subscription or in-app purchase. App folders in iCloud Drive (Pages, Numbers and others) aren't scanned yet.
+- Fixes: Back Up (copies checked with SHA-256), Retry Upload (moves a stuck file out of iCloud Drive and back, one at a time, only after a verified backup) and Restart iCloud Sync (restarts the user's own iCloud sync process, with consent).
+- It never deletes files (it only moves items to the Trash), never signs out of iCloud or changes iCloud settings, and never touches iCloud's system folders.
+- No analytics or telemetry. It goes online only for update checks (daily by default) and a 1 MB test upload to the user's own iCloud Drive during each scan to check that sync works (moved to the Trash afterwards).
+- Not on the Mac App Store. Download: https://everydayopen.github.io/whydunit/download/
+- Support: https://github.com/EverydayOpen/whydunit/issues
+
+## Pages
+
+- [Whydunit: fix iCloud Drive files stuck on Waiting to Upload](https://everydayopen.github.io/whydunit/): A Mac app that finds iCloud Drive files that won't upload, explains why in plain English and fixes them safely, with verified backups first. Free, with no account and no subscription.
+- [What's New · Whydunit](https://everydayopen.github.io/whydunit/changelog/): Every Whydunit release and what changed in it. Also available as an RSS feed.
+- [iCloud Drive stuck on “Waiting to Upload” on Mac: what it means and how to fix it safely](https://everydayopen.github.io/whydunit/guides/icloud-waiting-to-upload/): What each iCloud status in Finder means, why files get stuck on Waiting to Upload, safe fixes in the right order, and the popular “fixes” that can lose your files.
+- [Privacy Policy · Whydunit](https://everydayopen.github.io/whydunit/privacy/): What Whydunit does on your Mac and the two things it does online. No account, no analytics, no tracking, and no personal data collected.
+- [Support · Whydunit](https://everydayopen.github.io/whydunit/support/): Get help with Whydunit: report a problem on GitHub, send a diagnosis, find your backups, and what Whydunit can't do yet.
+- [Terms of Use · Whydunit](https://everydayopen.github.io/whydunit/terms/): Whydunit is free to use on any number of Macs. It comes as is, without warranty. The short, plain terms.
+
+## Feeds
+
+- [Changelog RSS](https://everydayopen.github.io/whydunit/feed.xml)
