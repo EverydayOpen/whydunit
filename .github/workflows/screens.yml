@@ -81,6 +81,8 @@ jobs:
           # Without an iCloud Drive folder every screen says "iCloud Drive Is Off". Empty; nothing syncs on the runner.
           mkdir -p "$HOME/Library/Mobile Documents/com~apple~CloudDocs"
           system_profiler SPDisplaysDataType | grep -i resolution || true   # the window is 1120×760 pt
+          # The runner's screen is small: the sheet capture (a screen rectangle) otherwise has the Dock across its foot.
+          defaults write com.apple.dock autohide -bool true && killall Dock || true
           for MODE in light dark; do
             for SCREEN in welcome summary finding backups activity backUpSheet; do
               # -F: no restored windows. Demo sets the look itself: the global AppleInterfaceStyle default didn't.
