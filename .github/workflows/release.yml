@@ -18,9 +18,12 @@
 #   ASC_KEY_ID                 that key's Key ID
 #   ASC_ISSUER_ID              that key's Issuer ID
 #   SPARKLE_ED_PRIVATE_KEY     base64 of the 32-byte Ed25519 seed (tools/sparkle_keys.py)
-#   RELEASES_REPO_TOKEN        fine-grained PAT, Contents: read and write, on RELEASES_REPO only
-# Variable (not secret):
-#   RELEASES_REPO              owner/whydunit-releases: public, DMGs in its Releases, site + appcast.xml on its gh-pages
+#   RELEASES_REPO_TOKEN        only with a separate releases repo: fine-grained PAT, Contents: read and write, on
+#                              RELEASES_REPO only; restrict the "release" and "site" environments to v* tags and main
+#                              first. Without it, publish uses github.token (contents: write on this repo).
+# Variable (not secret), optional:
+#   RELEASES_REPO              owner/repo whose Releases hold the DMGs and whose gh-pages serves site + appcast.xml;
+#                              defaults to this repo
 name: release
 
 on:
@@ -33,10 +36,16 @@ permissions:
 env:
   APP: Whydunit
   RELEASES_REPO: ${{ vars.RELEASES_REPO || github.repository }}
-  # publish runs generate_appcast from this Sparkle release, so it must equal project.yml's exactVersion (the preflight
-  # checks). Bump both, and this SHA-256 of Sparkle-$SPARKLE.tar.xz (GitHub's asset digest), in the same PR.
+  # publish runs generate_appcast from this Sparkle release, and project.yml pins the app's Sparkle to SPARKLE_REV, the
+  # commit of tag $SPARKLE (the preflight checks). Bump SPARKLE, SPARKLE_REV, this SHA-256 of Sparkle-$SPARKLE.tar.xz
+  # (GitHub's asset digest) and project.yml's revision together, in one PR.
   SPARKLE: "2.10.0"
+  SPARKLE_REV: eef1a539a373c1f1a320624b1130fc5de7b2e100
   SPARKLE_SHA256: c2bf58aa8387266ac179357b1415d6f2635f044da8be41042af32425dae6da0c
+  # Checksum-pinned XcodeGen (GitHub's digest of xcodegen.zip), never an unpinned brew install. Same pin in ci.yml and
+  # beta.yml: bump all three together.
+  XCODEGEN: "2.46.0"
+  XCODEGEN_SHA256: 4d9e34b62172d645eed6457cac13fc222569974098ef4ee9c3368bedf0196806
 
 defaults:
   run:
@@ -48,7 +57,7 @@ jobs:
     environment: release
     timeout-minutes: 120   # ~15 min build + two notarizations of up to 45 min each
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -61,37 +70,34 @@ jobs:
             || { echo "::error::CHANGELOG.md needs a '## $VERSION — YYYY-MM-DD' section with notes"; exit 1; }
           grep -q 'url: https://github.com/sparkle-project/Sparkle' project.yml && grep -qx ' *- package: Sparkle' project.yml \
             || { echo "::error::project.yml must declare the Sparkle package and depend on it"; exit 1; }
-          grep -q "exactVersion: \"$SPARKLE\"" project.yml || { echo "::error::project.yml Sparkle version != $SPARKLE (update the SHA in release.yml too)"; exit 1; }
+          grep -q "revision: \"$SPARKLE_REV\"" project.yml || { echo "::error::project.yml Sparkle revision != $SPARKLE_REV ($SPARKLE)"; exit 1; }
           # The key, feed and website URLs are baked into every copy: a placeholder ships an app that can't update or
           # links to OWNER.github.io. doctor.sh --ci treats placeholders as todos, so they're caught here.
           PH="$(plutil -extract SUPublicEDKey raw -o - App/Info.plist) $(plutil -extract SUFeedURL raw -o - App/Info.plist) $(jq -r .baseURL site/site.json) $(grep -m1 'let website' App/Links.swift)"
           [[ "$PH" != *REPLACE_* && "$PH" != *OWNER* ]] \
             || { echo "::error::Replace the placeholders first: SUPublicEDKey, and OWNER in SUFeedURL, site/site.json baseURL and Links.website in App/Links.swift (docs/GO_LIVE.md step 7)"; exit 1; }
-          # site.json baseURL == Links.website == SUFeedURL minus /appcast.xml.
-          bash tools/doctor.sh --ci || { echo "::error::One base URL everywhere: fix the ERROR lines above (docs/GO_LIVE.md step 2)"; exit 1; }
+          # site.json baseURL == Links.website == SUFeedURL minus /appcast.xml; Sparkle's signature checks on.
+          bash tools/doctor.sh --ci || { echo "::error::Fix the ERROR lines above (one base URL everywhere: docs/GO_LIVE.md step 2)"; exit 1; }
           [ "$(jq -r .releasesRepo site/site.json)" = "$RELEASES_REPO" ] || { echo "::error::site/site.json releasesRepo != $RELEASES_REPO"; exit 1; }
           [[ "$APP" =~ ^[A-Za-z0-9._-]+$ ]] && [ "$(jq -r .dmgName site/site.json)" = "$APP.dmg" ] || { echo "::error::APP must be letters, digits, . _ - only (GitHub renames other asset names) and site/site.json dmgName must be $APP.dmg"; exit 1; }
 
+      # Before any step has a secret in its env. Layout per XcodeGen's scripts/archive.sh.
+      - name: Generate project (XcodeGen, checksum-pinned)
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/xcodegen.zip" "https://github.com/yonaskolb/XcodeGen/releases/download/$XCODEGEN/xcodegen.zip"
+          echo "$XCODEGEN_SHA256  $RUNNER_TEMP/xcodegen.zip" | shasum -a 256 -c
+          unzip -q "$RUNNER_TEMP/xcodegen.zip" -d "$RUNNER_TEMP"
+          test -d "$RUNNER_TEMP/xcodegen/share/xcodegen/SettingPresets"   # without them xcodegen only prints a warning
+          "$RUNNER_TEMP/xcodegen/bin/xcodegen" generate
+
       # generate_appcast exits 0 and leaves the item unsigned on a key mismatch; catch it before building.
+      # Standard library only (tools/sparkle_keys.py): no third-party code runs with the signing key in its environment.
       - name: Preflight (SUPublicEDKey matches SPARKLE_ED_PRIVATE_KEY)
         env:
           SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
         run: |
-          python3 -m venv "$RUNNER_TEMP/py"
-          "$RUNNER_TEMP/py/bin/pip" install -q cryptography==50.0.1   # pinned: it runs with the signing key in its environment
           WANT=$(plutil -extract SUPublicEDKey raw -o - App/Info.plist)
-          GOT=$("$RUNNER_TEMP/py/bin/python" - <<'EOF'
-          import base64, os, re
-          from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
-          from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
-          # Strict, after the same whitespace strip as publish: generate_appcast rejects anything else in the key.
-          k = base64.b64decode(re.sub(r"\s", "", os.environ["SPARKLE_ED_PRIVATE_KEY"]), validate=True)
-          # 32 bytes: seed (tools/sparkle_keys.py, generate_keys -x). 96 bytes: Sparkle's older export format, the
-          # 64-byte private key then the 32-byte public key (common_cli/Secret.swift, Sparkle 2.10.0).
-          pub = k[64:] if len(k) == 96 else Ed25519PrivateKey.from_private_bytes(k).public_key().public_bytes(Encoding.Raw, PublicFormat.Raw)
-          print(base64.b64encode(pub).decode())
-          EOF
-          )
+          GOT=$(python3 tools/sparkle_keys.py public)
           [ "$GOT" = "$WANT" ] || { echo "::error::SUPublicEDKey in App/Info.plist ($WANT) is not the public key of SPARKLE_ED_PRIVATE_KEY ($GOT)"; exit 1; }
 
       # Before the long build: a wrong SUFeedURL ships an app that never sees its updates. gh-pages is served at the
@@ -145,8 +151,6 @@ jobs:
         env:
           TEAM_ID: ${{ secrets.DEVELOPMENT_TEAM }}
         run: |
-          brew install xcodegen
-          xcodegen generate
           plutil -replace teamID -string "$TEAM_ID" ExportOptions.plist
           xcodebuild -project "$APP.xcodeproj" -scheme "$APP" -configuration Release \
             -destination 'generic/platform=macOS' -archivePath "build/$APP.xcarchive" \
@@ -185,7 +189,7 @@ jobs:
       - name: Zip the signed app (notarization upload + Intel smoke test)
         run: ditto -c -k --keepParent "build/export/$APP.app" "build/$APP.zip"
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: app
           path: build/${{ env.APP }}.zip
@@ -221,7 +225,7 @@ jobs:
           spctl -vvv --assess --type open --context context:primary-signature "$DMG"
           echo "DMG=$DMG" >> "$GITHUB_ENV"
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: dmg
           path: ${{ env.DMG }}
@@ -233,7 +237,7 @@ jobs:
     runs-on: macos-15-intel   # Intel and the macOS 15 deployment target in one run (label per GitHub's runner docs, 2026)
     timeout-minutes: 15
     steps:
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: app
           path: build
@@ -256,6 +260,8 @@ jobs:
     needs: [build, smoke-intel]
     runs-on: macos-26   # generate_appcast is a macOS binary
     environment: release
+    permissions:
+      contents: write   # gh release create/upload, and the gh-pages push when RELEASES_REPO is this repo (github.token)
     timeout-minutes: 20
     # gh-pages has two writers on disjoint files: this job (appcast.xml only) and site.yml (everything but appcast.xml
     # and CNAME), each in its own group, so a publish waiting for approval never holds up a site deploy. A push rejected
@@ -263,11 +269,11 @@ jobs:
     # queue: max keeps every pending run (the default queue cancels a pending run when another queues).
     concurrency: { group: appcast, cancel-in-progress: false, queue: max }
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: dmg
           path: build
@@ -294,6 +300,11 @@ jobs:
           echo "$SPARKLE_SHA256  $RUNNER_TEMP/sparkle.tar.xz" | shasum -a 256 -c
           mkdir "$RUNNER_TEMP/sparkle" && tar -xf "$RUNNER_TEMP/sparkle.tar.xz" -C "$RUNNER_TEMP/sparkle"
 
+          # STATE empty: no release yet. true: a draft from an earlier try. false: already public; with immutable releases
+          # its assets are final, so a re-run signs the DMG the release serves (Ed25519 is deterministic), uploads nothing.
+          STATE=$(gh release view "$GITHUB_REF_NAME" -R "$RELEASES_REPO" --json isDraft --jq .isDraft 2>/dev/null || true)
+          [ "$STATE" != false ] || gh release download "$GITHUB_REF_NAME" -R "$RELEASES_REPO" -p "$(basename "$DMG")" -D build --clobber
+
           # Sign before publishing anything.
           cp "$DMG" build/updates/
           if [ -f build/pages/appcast.xml ]; then cp build/pages/appcast.xml build/updates/; fi
@@ -302,20 +313,27 @@ jobs:
             --download-url-prefix "https://github.com/$RELEASES_REPO/releases/download/$GITHUB_REF_NAME/" build/updates
           # generate_appcast exits 0 but leaves the item unsigned when SUPublicEDKey doesn't match the key.
           grep -F "/$(basename "$DMG")\"" build/updates/appcast.xml | grep -q 'sparkle:edSignature="' || { echo "::error::$DMG was not EdDSA-signed: SUPublicEDKey in App/Info.plist is malformed or doesn't match SPARKLE_ED_PRIVATE_KEY"; exit 1; }
+          # The app sets SURequireSignedFeed, so installed copies reject an unsigned feed. generate_appcast signs it (a
+          # trailing "<!-- sparkle-signatures:" block, Sparkle 2.10.0 FeedXML.swift) only when an archive's Info.plist asks.
+          grep -qx '<!-- sparkle-signatures:' build/updates/appcast.xml || { echo "::error::appcast.xml was not EdDSA-signed: App/Info.plist must set SURequireSignedFeed"; exit 1; }
 
-          # DMG before appcast so the feed never points at a missing file. Re-runnable: a re-run
+          # DMG before appcast so the feed never points at a missing file. Re-runnable while a draft: a full re-run
           # makes a new DMG (new EdDSA signature), so it must replace the old asset (--clobber).
           # The fixed-name copy is what the site's /download/ links to: releases/latest/download/Whydunit.dmg.
           # Created as a draft and published after the uploads, so "latest" never points at a release without its DMG.
-          cp "$DMG" "build/latest/$APP.dmg"
-          gh release view "$GITHUB_REF_NAME" -R "$RELEASES_REPO" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" -R "$RELEASES_REPO" --draft --title "$APP $VERSION" --notes-file build/notes.md
-          gh release upload "$GITHUB_REF_NAME" "$DMG" "build/latest/$APP.dmg" -R "$RELEASES_REPO" --clobber
-          gh release upload "$GITHUB_REF_NAME" build/updates/appcast.xml -R "$RELEASES_REPO" --clobber
-          gh release edit "$GITHUB_REF_NAME" -R "$RELEASES_REPO" --draft=false
+          if [ "$STATE" != false ]; then
+            cp "$DMG" "build/latest/$APP.dmg"
+            VT=(); [ "$RELEASES_REPO" != "$GITHUB_REPOSITORY" ] || VT=(--verify-tag)   # a separate releases repo has no tags of its own
+            [ -n "$STATE" ] || gh release create "$GITHUB_REF_NAME" -R "$RELEASES_REPO" --draft "${VT[@]}" --title "$APP $VERSION" --notes-file build/notes.md
+            gh release upload "$GITHUB_REF_NAME" "$DMG" "build/latest/$APP.dmg" -R "$RELEASES_REPO" --clobber
+            gh release upload "$GITHUB_REF_NAME" build/updates/appcast.xml -R "$RELEASES_REPO" --clobber
+            gh release edit "$GITHUB_REF_NAME" -R "$RELEASES_REPO" --draft=false
+          fi
 
           cp build/updates/appcast.xml build/pages/appcast.xml
           cd build/pages
           git config user.name ci && git config user.email ci@users.noreply.github.com
           git add appcast.xml
+          if git diff --cached --quiet; then echo "appcast.xml unchanged"; exit 0; fi   # a re-run after a full publish
           git commit -m "appcast $VERSION"
           git push || { git pull --rebase && git push; }   # site.yml pushed since the clone; it never touches appcast.xml

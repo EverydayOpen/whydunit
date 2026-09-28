@@ -5,19 +5,27 @@ import WhydunitCore
 /// the word is shown too, except where `showsWord` is off (sidebar and list rows: the symbols differ in shape).
 struct SeverityIcon: View {
     let severity: Severity
-    /// nil inherits the font, so the sidebar icon follows the System Settings sidebar icon size.
+    /// nil inherits the font.
     var size: CGFloat? = 16
     var showsWord = true
+    /// A System Settings tile (white symbol on the severity's colour, gray for info and unknown). Needs a size, and
+    /// keeps its colour on a selected row, as in System Settings.
+    var tile = false
     @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiate
     /// Increased on a selected row with an accent fill, where every other icon turns white.
     @Environment(\.backgroundProminence) private var prominence
 
     var body: some View {
         HStack(spacing: Space.xxs) {
-            Image(systemName: severity.symbol)
-                .font(size.map { Font.system(size: $0, weight: .semibold) })
-                .fontWeight(.semibold)
-                .foregroundStyle(prominence == .increased ? AnyShapeStyle(.foreground) : AnyShapeStyle(severity.color))
+            if tile, let size {
+                Image(systemName: severity.symbol)
+                    .tile(severity == .info || severity == .unknown ? .gray : severity.color, size: size)
+            } else {
+                Image(systemName: severity.symbol)
+                    .font(size.map { Font.system(size: $0, weight: .semibold) })
+                    .fontWeight(.semibold)
+                    .foregroundStyle(prominence == .increased ? AnyShapeStyle(.foreground) : AnyShapeStyle(severity.color))
+            }
             if differentiate && showsWord {
                 Text(severity.word).font(.caption.weight(.semibold))
             }
@@ -61,6 +69,7 @@ struct ItemList<Trailing: View>: View {
 #Preview {
     HStack(spacing: Space.m) {
         ForEach(Severity.allCases, id: \.self) { SeverityIcon(severity: $0) }
+        ForEach(Severity.allCases, id: \.self) { SeverityIcon(severity: $0, size: 24, tile: true) }
     }
     .padding(Space.l)
 }

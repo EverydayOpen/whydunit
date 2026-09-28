@@ -52,20 +52,7 @@ public struct BackupService: Sendable {
 
     public func backUp(_ items: [ItemRecord], now: Date, progress: @escaping @Sendable (BackupProgress) -> Void) async throws -> BackupManifest {
         guard !items.isEmpty else { throw BackupError.nothingToBackUp }
-        // Resolve the part that exists, then add back the rest: resolvingSymlinksInPath may leave a path that
-        // doesn't exist yet unresolved, and a symlinked parent must not hide an iCloud folder.
-        let requested = backupsRoot.standardizedFileURL
-        var ancestor = requested
-        while !FileManager.default.fileExists(atPath: ancestor.path) { ancestor.deleteLastPathComponent() }
-        let resolved = ancestor.resolvingSymlinksInPath()
-        let destination = requested.pathComponents.dropFirst(ancestor.pathComponents.count)
-            .reduce(resolved) { $0.appendingPathComponent($1) }
-        let mobileDocuments = SystemInfo.homeDirectory.appendingPathComponent("Library/Mobile Documents").resolvingSymlinksInPath()
-        // Also ask the folder itself: `locations` may be stale, and its Desktop & Documents detection is unverified.
-        guard !locations.contains(destination), !Self.isInside(destination, mobileDocuments),
-              (try? resolved.resourceValues(forKeys: [.isUbiquitousItemKey]))?.isUbiquitousItem != true else {
-            throw BackupError.destinationInsideICloud
-        }
+        guard !Self.isInsideICloud(backupsRoot, locations: locations) else { throw BackupError.destinationInsideICloud }
 
         // A parent path sorts before its children, so a selected folder is copied before selected items inside it.
         let ordered = items.sorted { $0.path < $1.path }
@@ -77,7 +64,7 @@ public struct BackupService: Sendable {
             sizes.append(size)
         }
         let fm = FileManager.default
-        try fm.createDirectory(at: backupsRoot, withIntermediateDirectories: true)
+        try fm.createDirectory(at: backupsRoot, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
         let needed = 2 * sizes.reduce(0, +)
         if let free = SystemInfo.freeBytes(at: backupsRoot), free < needed {
             throw BackupError.notEnoughSpace(needed: needed, available: free)
@@ -168,6 +155,23 @@ public struct BackupService: Sendable {
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.dateFormat = "yyyy-MM-dd HH.mm.ss"
         return formatter.string(from: date)
+    }
+
+    /// True if `url` (which needn't exist yet) is in iCloud: backups there don't count, since iCloud can evict them
+    /// or delete them along with the originals. Backing up (the folder) and Retry Upload (each copy) both check it.
+    public static func isInsideICloud(_ url: URL, locations: ICloudLocations) -> Bool {
+        // Resolve the part that exists, then add back the rest: resolvingSymlinksInPath may leave a path that
+        // doesn't exist yet unresolved, and a symlinked parent must not hide an iCloud folder.
+        let requested = url.standardizedFileURL
+        var ancestor = requested
+        while !FileManager.default.fileExists(atPath: ancestor.path) { ancestor.deleteLastPathComponent() }
+        let resolved = ancestor.resolvingSymlinksInPath()
+        let destination = requested.pathComponents.dropFirst(ancestor.pathComponents.count)
+            .reduce(resolved) { $0.appendingPathComponent($1) }
+        let mobileDocuments = SystemInfo.homeDirectory.appendingPathComponent("Library/Mobile Documents").resolvingSymlinksInPath()
+        // Also ask the file system: `locations` may be stale, and its Desktop & Documents detection is unverified.
+        return locations.contains(destination) || isInside(destination, mobileDocuments)
+            || (try? resolved.resourceValues(forKeys: [.isUbiquitousItemKey]))?.isUbiquitousItem == true
     }
 
     /// Case-insensitive because APFS usually is.

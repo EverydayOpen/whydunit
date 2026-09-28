@@ -23,26 +23,33 @@ struct RetryUploadSheet: View {
     private var syncStalled: Bool { store.isSyncStalled }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Space.m) {
+        ZStack(alignment: .topLeading) {
             switch phase {
-            case .review: review
-            case .running: running
-            case .done: done
+            case .review: sheetStep(reduceMotion) { review }
+            case .running: sheetStep(reduceMotion) { running }
+            case .done: sheetStep(reduceMotion) { done }
             }
         }
         .padding(Space.l)
         .frame(width: 560, alignment: .leading)
-        .animation(Motion.standard(reduceMotion), value: phase)
+        .overlay(alignment: .topTrailing) { StepDots(count: 3, current: stepIndex) }
+        .buttonStyle(.bordered)
+        .buttonBorderShape(.capsule)
+        .animation(Motion.spring(reduceMotion), value: phase)
         .interactiveDismissDisabled(phase == .running)
     }
 
     @ViewBuilder private var review: some View {
-        Text("Retry Upload").font(.title3.weight(.semibold)).accessibilityAddTraits(.isHeader)
-        Text("Each item is moved out of iCloud Drive and back in, one at a time, so iCloud picks it up again. While an item is out, it disappears from your other devices for a moment. Nothing is deleted.")
-            .fixedSize(horizontal: false, vertical: true)
-        if syncStalled {
-            Text("iCloud isn't uploading anything right now, so a retry would only wait behind it. Restart iCloud Sync first.")
-                .fixedSize(horizontal: false, vertical: true)
+        SheetHeader(symbol: "icloud.and.arrow.up", title: "Retry Upload",
+                    detail: "Each item is moved out of iCloud Drive and back in, one at a time, so iCloud picks it up again. While an item is out, it disappears from your other devices for a moment.")
+            .accessibilityAddTraits(.isHeader)
+        SafetyChecks {
+            SafetyCheck(text: "Only items with a verified backup are moved.")
+            SafetyCheck(text: "Nothing is deleted.")
+            if syncStalled {
+                SafetyCheck(text: "iCloud isn't uploading anything right now, so a retry would only wait behind it. Restart iCloud Sync first.",
+                            unmet: "exclamationmark.circle")
+            }
         }
         if !ready.isEmpty {
             ItemList(paths: ready) { _ in Text("Backed up") }
@@ -93,7 +100,9 @@ struct RetryUploadSheet: View {
     }
 
     @ViewBuilder private var running: some View {
-        Text("Retrying Upload…").font(.title3.weight(.semibold)).accessibilityAddTraits(.isHeader)
+        SheetHeader(symbol: "icloud.and.arrow.up", title: "Retrying Upload…",
+                    detail: store.stopRequested ? "Stopping after this item…" : "Stop finishes the current item first.")
+            .accessibilityAddTraits(.isHeader)
         ProgressView(value: Double(outcomes.count), total: Double(max(started.count, 1)))
         ItemList(paths: started) { path in
             if let outcome = outcomes[path] {
@@ -108,9 +117,6 @@ struct RetryUploadSheet: View {
             }
         }
         HStack {
-            Text(store.stopRequested ? "Stopping after this item…" : "Stop finishes the current item first.")
-                .font(.callout)
-                .foregroundStyle(.secondary)
             Spacer()
             Button("Stop") { store.stopRequested = true }
                 .keyboardShortcut(.cancelAction)
@@ -120,15 +126,13 @@ struct RetryUploadSheet: View {
 
     @ViewBuilder private var done: some View {
         let uploaded = outcomes.values.filter { if case .uploaded = $0 { true } else { false } }.count
-        Text("\(uploaded) of \(itemCount(started.count)) uploaded").font(.title3.weight(.semibold)).accessibilityAddTraits(.isHeader)
+        SheetHeader(symbol: "icloud.and.arrow.up", title: "\(uploaded) of \(itemCount(started.count)) uploaded",
+                    detail: outcomes.values.contains(.stillWaiting)
+                        ? "Items still waiting may finish uploading on their own. Scan again later to check. Their backups are kept."
+                        : "Each result is also in Activity.")
+            .accessibilityAddTraits(.isHeader)
         ItemList(paths: started) { path in
             if let outcome = outcomes[path] { outcomeLabel(outcome) } else { Text("Not started") }
-        }
-        if outcomes.values.contains(.stillWaiting) {
-            Text("Items still waiting may finish uploading on their own. Scan again later to check. Their backups are kept.")
-                .font(.callout)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
         }
         HStack {
             Spacer()
@@ -156,8 +160,17 @@ struct RetryUploadSheet: View {
         }
     }
 
+    private var stepIndex: Int {
+        switch phase {
+        case .review: 0
+        case .running: 1
+        case .done: 2
+        }
+    }
+
+    /// The copy the retry will use: verified, and not inside iCloud.
     private func hasVerifiedBackup(_ path: String) -> Bool {
-        store.backups.contains { $0.verifiedEntry(for: path) != nil }
+        store.verifiedBackup(for: path) != nil
     }
 
     private func start() {

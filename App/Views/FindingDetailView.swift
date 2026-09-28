@@ -110,8 +110,10 @@ struct FindingDetailView: View {
             }
             .width(min: 90, ideal: 100)   // room for "At least 1.2 GB"
             .alignment(.numeric)   // right-aligned, like Finder
-            TableColumn("Status", value: \.status)
-                .width(min: 100, ideal: 150)
+            TableColumn("Status", value: \.status) { row in
+                StatusTag(status: row.state)
+            }
+            .width(min: 100, ideal: 150)
             // Minimums (430 in all) fit the 1000 pt window with sidebar and inspector open. Modified shows the
             // date only so they do; the tooltip and the inspector have the time.
             TableColumn("Modified", value: \.sortModified) { row in
@@ -141,10 +143,10 @@ struct FindingDetailView: View {
 
     private func header(_ finding: Finding) -> some View {
         VStack(alignment: .leading, spacing: Space.s) {
-            HStack(spacing: Space.xs) {
-                SeverityIcon(severity: finding.severity, size: 20)
+            HStack(spacing: Space.s) {
+                SeverityIcon(severity: finding.severity, size: 40, tile: true)
                 Text(finding.title)
-                    .font(.title2.weight(.semibold))
+                    .font(.title2.weight(.bold))
             }
             .accessibilityElement(children: .combine)
             .accessibilityAddTraits(.isHeader)
@@ -155,13 +157,18 @@ struct FindingDetailView: View {
                 .frame(maxWidth: 640, alignment: .leading)
 
             if !finding.steps.isEmpty {
-                VStack(alignment: .leading, spacing: Space.xxs) {
+                VStack(alignment: .leading, spacing: Space.xs) {
                     Text("What to Try").font(.headline)
                     ForEach(Array(finding.steps.enumerated()), id: \.offset) { index, step in
                         HStack(alignment: .firstTextBaseline, spacing: Space.xs) {
-                            Text("\(index + 1).").monospacedDigit().foregroundStyle(.secondary)
+                            Text("\(index + 1)")
+                                .font(.caption.weight(.bold))
+                                .monospacedDigit()
+                                .frame(width: 20, height: 20)
+                                .background(Color.accentColor.opacity(0.14), in: Circle())
                             Text(step)
                         }
+                        .accessibilityElement(children: .combine)
                     }
                 }
                 .frame(maxWidth: 640, alignment: .leading)
@@ -217,7 +224,7 @@ struct FindingDetailView: View {
             let button = Button(title(action)) { run(action, finding) }
                 .disabled(needsSelection(action) && store.selection.isEmpty)
             if action == finding.primaryAction {
-                button.buttonStyle(.borderedProminent)
+                button.buttonStyle(.borderedProminent).buttonBorderShape(.capsule)
             } else {
                 button.buttonStyle(.bordered)
             }
@@ -324,6 +331,7 @@ private struct ItemRow: Identifiable, Sendable {
     let item: ItemRecord
     let name: String
     let folder: String
+    let state: ItemStatus
     let status: String
     let sortSize: Int64
     let sortModified: Date
@@ -333,8 +341,27 @@ private struct ItemRow: Identifiable, Sendable {
         self.item = item
         name = item.name
         folder = item.displayFolder
-        status = ICloudClassifier.status(of: item).label
+        state = ICloudClassifier.status(of: item)
+        status = state.label
         sortSize = item.logicalSize ?? -1
         sortModified = item.modified ?? .distantPast
+    }
+}
+
+/// Status as a tag: accent while waiting, red when failed, gray otherwise. White on a selected row, like its text.
+private struct StatusTag: View {
+    let status: ItemStatus
+    @Environment(\.backgroundProminence) private var prominence
+
+    var body: some View {
+        Tag(text: status.label, tint: prominence == .increased ? .white : tint)
+    }
+
+    private var tint: Color {
+        switch status {
+        case .waitingToUpload: .accentColor
+        case .uploadFailed: .red
+        default: .secondary
+        }
     }
 }

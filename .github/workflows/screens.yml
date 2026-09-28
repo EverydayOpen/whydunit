@@ -1,0 +1,128 @@
+# Screenshots of the app for design review, without a Mac user: a Debug build launched with -demoScreen <name>
+# (App/Demo.swift) shows made-up sample data on that screen, and its window is captured in light and dark.
+# Artifact "screens": <screen>-<light|dark>.png. Nothing is published or committed.
+name: screens
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "App/**"
+      - "Sources/**"
+      - "Package.swift"
+      - "project.yml"
+      - ".github/workflows/screens.yml"
+
+permissions:
+  contents: read
+
+env:
+  APP: Whydunit
+  XCODEGEN: "2.46.0"   # checksum-pinned, same pin as ci.yml, beta.yml and release.yml: bump all four together
+  XCODEGEN_SHA256: 4d9e34b62172d645eed6457cac13fc222569974098ef4ee9c3368bedf0196806
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  screens:
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Select Xcode 26
+        run: sudo xcode-select -s /Applications/Xcode_26.6.app && xcodebuild -version
+
+      - name: Generate project (XcodeGen, checksum-pinned)
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/xcodegen.zip" "https://github.com/yonaskolb/XcodeGen/releases/download/$XCODEGEN/xcodegen.zip"
+          echo "$XCODEGEN_SHA256  $RUNNER_TEMP/xcodegen.zip" | shasum -a 256 -c
+          unzip -q "$RUNNER_TEMP/xcodegen.zip" -d "$RUNNER_TEMP"
+          test -d "$RUNNER_TEMP/xcodegen/share/xcodegen/SettingPresets"   # without them xcodegen only prints a warning
+          "$RUNNER_TEMP/xcodegen/bin/xcodegen" generate
+
+      # Debug, the only configuration with App/Demo.swift (#if DEBUG). No signing identity: ad-hoc with the hardened
+      # runtime off, as in beta.yml, since library validation would refuse the embedded Sparkle under an ad-hoc signature.
+      - name: Build (Debug, ad-hoc signed)
+        run: |
+          xcodebuild -project Whydunit.xcodeproj -scheme Whydunit -configuration Debug \
+            -destination 'platform=macOS' -derivedDataPath build/dd \
+            CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="-" DEVELOPMENT_TEAM="" ENABLE_HARDENED_RUNTIME=NO build
+
+      # Prints "<window id> <x>,<y>,<w>,<h>" for the app's largest on-screen window: the main window, not a sheet.
+      # Owner name, number, layer and bounds need no Screen Recording permission; only window titles would.
+      - name: Build the window finder
+        run: |
+          cat > "$RUNNER_TEMP/window.swift" <<'EOF'
+          import CoreGraphics
+
+          let all = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] ?? []
+          func bounds(_ w: [String: Any]) -> CGRect {
+              CGRect(dictionaryRepresentation: w[kCGWindowBounds as String] as! CFDictionary) ?? .zero
+          }
+          let mine = all.filter {
+              $0[kCGWindowOwnerName as String] as? String == CommandLine.arguments[1] && $0[kCGWindowLayer as String] as? Int == 0
+          }
+          if let w = mine.max(by: { bounds($0).width * bounds($0).height < bounds($1).width * bounds($1).height }) {
+              let r = bounds(w)
+              print(w[kCGWindowNumber as String] as! Int, "\(Int(r.minX)),\(Int(r.minY)),\(Int(r.width)),\(Int(r.height))")
+          }
+          EOF
+          swiftc -O "$RUNNER_TEMP/window.swift" -o "$RUNNER_TEMP/window"
+
+      - name: Capture screens
+        run: |
+          BUNDLE="build/dd/Build/Products/Debug/$APP.app"
+          mkdir -p screens
+          # Without an iCloud Drive folder every screen says "iCloud Drive Is Off". Empty; nothing syncs on the runner.
+          mkdir -p "$HOME/Library/Mobile Documents/com~apple~CloudDocs"
+          system_profiler SPDisplaysDataType | grep -i resolution || true   # the window is 1120×760 pt
+          defaults delete -g AppleInterfaceStyleSwitchesAutomatically 2>/dev/null || true
+          for MODE in light dark; do
+            # The global default reaches a freshly launched app; the argument backs it up for this app alone.
+            if [[ $MODE == dark ]]; then
+              defaults write -g AppleInterfaceStyle Dark
+              LOOK=(-AppleInterfaceStyle Dark)
+            else
+              defaults delete -g AppleInterfaceStyle 2>/dev/null || true
+              LOOK=()
+            fi
+            for SCREEN in welcome summary finding backups activity backUpSheet; do
+              open -F "$BUNDLE" --args -demoScreen "$SCREEN" "${LOOK[@]}"   # -F: no restored windows
+              WIN=""
+              for _ in $(seq 60); do
+                WIN=$("$RUNNER_TEMP/window" "$APP")
+                [[ -n $WIN ]] && break
+                sleep 0.5
+              done
+              if [[ -z $WIN ]]; then
+                echo "::error::No $APP window for $SCREEN ($MODE)"
+                for F in $(ls -t ~/Library/Logs/DiagnosticReports/"$APP"* 2>/dev/null | head -1); do cat "$F"; done
+                exit 1
+              fi
+              sleep 5   # entrance motion, and the sheet, which Demo shows 1 s after launch
+              read -r ID RECT <<< "$("$RUNNER_TEMP/window" "$APP")"
+              OUT="screens/$SCREEN-$MODE.png"
+              # A sheet is a window of its own, so that screen is the main window's rectangle, sheet included (no
+              # shadow). The others are the window alone, with its shadow on transparency.
+              if [[ $SCREEN == backUpSheet ]]; then
+                screencapture -x -R "$RECT" "$OUT"
+              else
+                screencapture -x -l "$ID" "$OUT"
+              fi
+              pkill -x "$APP"
+              while pgrep -x "$APP" >/dev/null; do sleep 0.5; done
+            done
+          done
+          ls -l screens
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ !cancelled() }}   # the screens taken before a failure still help
+        with:
+          name: screens
+          path: screens/*.png
+          if-no-files-found: error

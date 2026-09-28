@@ -8,22 +8,22 @@ struct SidebarView: View {
         @Bindable var store = store
         List(selection: $store.route) {
             Section("iCloud Drive") {
-                Label("Summary", systemImage: "icloud")
+                row("Summary", "icloud.fill", .accentColor)
                     .tag(Route.summary)
                 ForEach(store.diagnosis?.findings ?? []) { finding in
                     Label {
                         Text(finding.rule.shortName)
                     } icon: {
-                        SeverityIcon(severity: finding.severity, size: nil, showsWord: false)
+                        SeverityIcon(severity: finding.severity, size: 20, showsWord: false, tile: true)
                     }
                     .badge(finding.itemPaths.count)
                     .tag(Route.finding(finding.rule))
                 }
             }
             Section("History") {
-                Label("Backups", systemImage: "clock.arrow.circlepath")
+                row("Backups", "clock.arrow.circlepath", .teal)
                     .tag(Route.backups)
-                Label("Activity", systemImage: "list.bullet.rectangle")
+                row("Activity", "list.bullet.rectangle", .gray)
                     .tag(Route.activity)
             }
         }
@@ -32,5 +32,10 @@ struct SidebarView: View {
         .onChange(of: store.route) { old, new in
             if new == nil { store.route = old ?? .summary }
         }
+    }
+
+    /// Tiles keep their colour on the selected row, as in System Settings.
+    private func row(_ title: LocalizedStringKey, _ symbol: String, _ color: Color) -> some View {
+        Label { Text(title) } icon: { Image(systemName: symbol).tile(color, size: 20) }
     }
 }

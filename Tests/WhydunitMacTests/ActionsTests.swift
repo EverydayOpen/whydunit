@@ -47,6 +47,7 @@ final class ActionsTests: XCTestCase {
         let copy = URL(fileURLWithPath: manifest.folder).appendingPathComponent("iCloud Drive/Folder/a.txt")
         XCTAssertEqual(try String(contentsOf: copy, encoding: .utf8), "hello")
         XCTAssertEqual(try permissions(URL(fileURLWithPath: manifest.folder)), 0o700)   // other users can't read the copies
+        XCTAssertEqual(try permissions(tmp.appendingPathComponent("Backups")), 0o700)   // or list the backups
 
         let listed = service.listBackups()
         XCTAssertEqual(listed.count, 1)
@@ -127,6 +128,10 @@ final class ActionsTests: XCTestCase {
         missing.copy = tmp.appendingPathComponent("gone.txt").path
         let unknown = await local.retry(scanned, rootURL: tmp, backup: present)
         XCTAssertEqual(unknown, .skipped(reason: "macOS didn't report its sync state"))
+        var inCloud = present
+        inCloud.copy = SystemInfo.homeDirectory.appendingPathComponent("Library/Mobile Documents/com~apple~CloudDocs/Backups/x.txt").path
+        let cloudCopy = await local.retry(scanned, rootURL: tmp, backup: inCloud)
+        XCTAssertEqual(cloudCopy, .skipped(reason: "The backup copy is inside iCloud now. Back up to a folder outside iCloud first."))
         let noCopy = await local.retry(scanned, rootURL: tmp, backup: missing)
         XCTAssertEqual(noCopy, .skipped(reason: "The backup copy changed or is missing. Back up again first."))
         try Data("edited".utf8).write(to: copy)

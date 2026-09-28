@@ -31,37 +31,33 @@ struct BackupsView: View {
 
     private func row(_ backup: BackupManifest) -> some View {
         HStack(spacing: Space.s) {
-            Image(nsImage: NSWorkspace.shared.icon(forFile: backup.folder))
-                .resizable()
-                .frame(width: 32, height: 32)
+            Image(systemName: "folder.fill")
+                .tile(.teal, size: 32)   // the Backups tile in the sidebar
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 Text(backup.created.formatted(date: .abbreviated, time: .shortened))
-                    .font(.headline)
-                Text("\(itemCount(backup.entries.count)) · \(ByteFormat.string(backup.totalBytes))")
+                    .font(.system(.body, design: .monospaced, weight: .semibold))
+                Text(ByteFormat.string(backup.totalBytes))
                     .font(.callout)
                     .monospacedDigit()
                     .foregroundStyle(.secondary)
             }
             Spacer(minLength: Space.s)
-            verifiedLabel(backup)
+            verifiedTag(backup)
             Button("Show in Finder") { FinderBridge.reveal([backup.folder]) }
                 .controlSize(.small)
             Button("Move to Trash…") { pendingTrash = backup }
                 .controlSize(.small)
         }
-        .padding(.vertical, Space.xxs)
+        .padding(.vertical, Space.xs)
     }
 
-    private func verifiedLabel(_ backup: BackupManifest) -> some View {
-        let verified = backup.entries.filter(\.verified).count
-        return Label {
-            Text(backup.isFullyVerified ? "Verified" : "\(verified) of \(backup.entries.count) verified")
-        } icon: {
-            Image(systemName: backup.isFullyVerified ? "checkmark.seal.fill" : Severity.warning.symbol)
-                .foregroundStyle(backup.isFullyVerified ? Color.green : Severity.warning.color)
-        }
-        .font(.callout)
+    /// "Verified · 14 items", or "12 of 14 verified" in orange when a copy didn't verify.
+    private func verifiedTag(_ backup: BackupManifest) -> some View {
+        let total = backup.entries.count
+        return backup.isFullyVerified
+            ? Tag(text: "Verified · \(itemCount(total))", tint: .green)
+            : Tag(text: "\(backup.entries.filter(\.verified).count) of \(total) verified", tint: Severity.warning.color)
     }
 
     private func trash(_ backup: BackupManifest) {

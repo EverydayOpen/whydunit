@@ -28,7 +28,11 @@ public struct UploadRetrier: Sendable {
     public func retry(_ item: ItemRecord, rootURL: URL, backup: BackupManifest.Entry, waitAfterReturn: TimeInterval = 120) async -> RetryOutcome {
         guard !item.isDirectory || item.isPackage else { return .skipped(reason: "Folders aren't moved. Retry the files inside it.") }
         guard backup.verified, backup.source == item.path else { return .skipped(reason: "No checked backup of this item") }
-        // The backups folder is the user's to edit: the copy must still be there, on this Mac, unchanged.
+        // The backups folder is the user's to edit: the copy must still be outside iCloud (it may have been moved in,
+        // or Desktop & Documents turned on since), there, on this Mac, and unchanged.
+        guard !BackupService.isInsideICloud(URL(fileURLWithPath: backup.copy), locations: .current()) else {
+            return .skipped(reason: "The backup copy is inside iCloud now. Back up to a folder outside iCloud first.")
+        }
         // A missing or dataless copy fails the hash (materialization is off).
         guard backup.copy != item.path,
               (try? BackupService.sha256(of: URL(fileURLWithPath: backup.copy), isTree: item.isDirectory || item.isPackage)) == backup.sha256 else {

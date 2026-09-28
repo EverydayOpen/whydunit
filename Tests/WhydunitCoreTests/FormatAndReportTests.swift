@@ -39,6 +39,10 @@ final class FormatAndReportTests: XCTestCase {
         ].map { $0 + "\r\n" }.joined()
         XCTAssertEqual(CSVExport.render(items), expected)
         XCTAssertEqual(CSVExport.render([]), "Name,Folder,Size bytes,Status,Modified ISO8601,Path\r\n")
+        // A name a spreadsheet would run as a formula gets a leading ' (and quotes); one merely containing = doesn't.
+        let formula = ItemRecord(path: cloud + "/=HYPERLINK(\"x\").txt", root: .iCloudDrive, relativePath: "=HYPERLINK(\"x\").txt")
+        XCTAssertTrue(CSVExport.render([formula]).contains("\r\n\"'=HYPERLINK(\"\"x\"\").txt\","))
+        XCTAssertEqual(["-1", "+1", "@a", "\tx", "a=b"].map(CSVExport.field), ["\"'-1\"", "\"'+1\"", "\"'@a\"", "\"'\tx\"", "a=b"])
     }
 
     func testDiagnosisTextRedactsHomeAndMacName() {
