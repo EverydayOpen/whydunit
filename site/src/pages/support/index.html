@@ -1,0 +1,33 @@
+<!--meta {"title": "Support · Whydunit", "description": "Get help with Whydunit: report a problem on GitHub, send a diagnosis, find your backups, and what Whydunit can't do yet."}-->
+<article class="wrap narrow prose">
+  <h1>Support</h1>
+  <p class="lede">Report a problem or ask a question on <a href="{{issuesURL}}">GitHub Issues</a>. Please include your macOS version and, if you can, a diagnosis (see below).</p>
+
+  <h2 id="diagnosis">Sending a diagnosis</h2>
+  <ol>
+    <li>Open Whydunit and scan.</li>
+    <li>In the Summary, click Copy Diagnosis (or press Shift-Command-C).</li>
+    <li>Paste it into your issue.</li>
+  </ol>
+  <p>The diagnosis lists each finding and the names and folders of the affected files. Your home folder is shown as <code>~</code>, and your user name and Mac name are left out. Issues on GitHub are public, so read it before you post it and remove anything you'd rather not share. The same text is useful for Apple Support.</p>
+
+  <h2 id="backups">Where are my backups?</h2>
+  <p>In the Whydunit Backups folder in your home folder, unless you picked another folder in Settings › General. Each backup is a dated folder with your files and a manifest of their SHA-256 checksums. In the app, History › Backups lists them.</p>
+
+  <h2 id="limits">What Whydunit can't do (yet)</h2>
+  <ul>
+    <li>It checks iCloud Drive, plus Desktop and Documents when they sync to iCloud. App folders in iCloud Drive, such as those of Pages or Numbers, aren't checked yet.</li>
+    <li>It doesn't cover iCloud Photos, Mail, Messages or Keychain, or other services such as Dropbox or Google Drive.</li>
+    <li>It can't bring back files that exist only on Apple's servers, or files that were deleted. For deleted files, check the Trash, then Recently Deleted in iCloud Drive on iCloud.com, where Apple keeps them for 30 days.</li>
+    <li>It can't fix problems on Apple's side, such as an iCloud outage, or with your Apple Account.</li>
+    <li>When macOS reports no sync status for a file, Whydunit says so instead of guessing.</li>
+    <li>It needs macOS {{minMacOS}} or later.</li>
+  </ul>
+
+  <h2>More help</h2>
+  <ul>
+    <li><a href="/guides/icloud-waiting-to-upload/">iCloud Drive stuck on Waiting to Upload: what it means and how to fix it safely</a></li>
+    <li><a href="/changelog/">What's new in each version</a></li>
+    <li><a href="/privacy/">Privacy policy</a> · <a href="/terms/">Terms</a></li>
+  </ul>
+</article>

@@ -1,0 +1,66 @@
+import SwiftUI
+import WhydunitCore
+
+/// The only view that draws a severity. VoiceOver always hears the word; with Differentiate Without Color
+/// the word is shown too, except where `showsWord` is off (sidebar and list rows: the symbols differ in shape).
+struct SeverityIcon: View {
+    let severity: Severity
+    /// nil inherits the font, so the sidebar icon follows the System Settings sidebar icon size.
+    var size: CGFloat? = 16
+    var showsWord = true
+    @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiate
+    /// Increased on a selected row with an accent fill, where every other icon turns white.
+    @Environment(\.backgroundProminence) private var prominence
+
+    var body: some View {
+        HStack(spacing: Space.xxs) {
+            Image(systemName: severity.symbol)
+                .font(size.map { Font.system(size: $0, weight: .semibold) })
+                .fontWeight(.semibold)
+                .foregroundStyle(prominence == .increased ? AnyShapeStyle(.foreground) : AnyShapeStyle(severity.color))
+            if differentiate && showsWord {
+                Text(severity.word).font(.caption.weight(.semibold))
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(severity.word)
+    }
+}
+
+/// Bordered list of item names and folders with a trailing detail, used inside the action sheets.
+struct ItemList<Trailing: View>: View {
+    let paths: [String]
+    @ViewBuilder let trailing: (String) -> Trailing
+
+    var body: some View {
+        List(paths, id: \.self) { path in
+            HStack(spacing: Space.xs) {
+                // The folder too, so two items with the same name can be told apart.
+                VStack(alignment: .leading) {
+                    Text((path as NSString).lastPathComponent)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                    Text(((path as NSString).deletingLastPathComponent as NSString).abbreviatingWithTildeInPath)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.head)
+                }
+                .help(path)
+                Spacer(minLength: Space.xs)
+                trailing(path)
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
+            }
+        }
+        .listStyle(.bordered(alternatesRowBackgrounds: true))
+        .frame(height: 150)
+    }
+}
+
+#Preview {
+    HStack(spacing: Space.m) {
+        ForEach(Severity.allCases, id: \.self) { SeverityIcon(severity: $0) }
+    }
+    .padding(Space.l)
+}

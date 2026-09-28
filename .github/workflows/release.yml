@@ -1,0 +1,321 @@
+# Tag vX.Y.Z -> signed, notarized, stapled DMG on a GitHub Release + Sparkle appcast.
+# Steps follow docs/research/distribution-licensing.md §4 and docs/BUILD_PLAN.md §9.6. One-time setup: docs/RELEASING.md.
+#
+#   build        preflight (changelog row, Sparkle version and key pair, placeholders, one base URL, releasesRepo,
+#                DMG name, feed URL vs gh-pages, notarytool credentials) -> archive -> bundle checks
+#                -> arm64 launch smoke test -> notarize app -> DMG -> notarize DMG
+#   smoke-intel  launches the same signed app on an Intel runner (macOS 15, the deployment target)
+#   publish      only after both smoke tests: GitHub Release (notes from CHANGELOG.md), DMG twice
+#                (versioned for the appcast, fixed Whydunit.dmg for the site's latest link), signed appcast
+#
+# Secrets (in the protected "release" environment; build and publish both use it, so a required reviewer approves
+# twice: once to build, once to publish after the smoke tests pass):
+#   DEVELOPER_ID_P12_BASE64    base64 of the Developer ID Application identity (.p12, legacy PBE)
+#   DEVELOPER_ID_P12_PASSWORD  password of that .p12
+#   KEYCHAIN_PASSWORD          any random string (temporary CI keychain)
+#   DEVELOPMENT_TEAM           Apple Team ID (10 characters)
+#   ASC_KEY_P8_BASE64          base64 of the App Store Connect Team API key (AuthKey_XXXXXXXXXX.p8)
+#   ASC_KEY_ID                 that key's Key ID
+#   ASC_ISSUER_ID              that key's Issuer ID
+#   SPARKLE_ED_PRIVATE_KEY     base64 of the 32-byte Ed25519 seed (tools/sparkle_keys.py)
+#   RELEASES_REPO_TOKEN        fine-grained PAT, Contents: read and write, on RELEASES_REPO only
+# Variable (not secret):
+#   RELEASES_REPO              owner/whydunit-releases: public, DMGs in its Releases, site + appcast.xml on its gh-pages
+name: release
+
+on:
+  push:
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]   # plain X.Y.Z only: no beta channel yet, so a -beta tag must not reach users
+
+permissions:
+  contents: read
+
+env:
+  APP: Whydunit
+  RELEASES_REPO: ${{ vars.RELEASES_REPO || github.repository }}
+  # publish runs generate_appcast from this Sparkle release, so it must equal project.yml's exactVersion (the preflight
+  # checks). Bump both, and this SHA-256 of Sparkle-$SPARKLE.tar.xz (GitHub's asset digest), in the same PR.
+  SPARKLE: "2.10.0"
+  SPARKLE_SHA256: c2bf58aa8387266ac179357b1415d6f2635f044da8be41042af32425dae6da0c
+
+defaults:
+  run:
+    shell: bash   # bash -eo pipefail
+
+jobs:
+  build:
+    runs-on: macos-26
+    environment: release
+    timeout-minutes: 120   # ~15 min build + two notarizations of up to 45 min each
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # Preflight: everything that can fail without Xcode fails here, before any build time.
+      - name: Preflight (changelog row, Sparkle version, placeholders, one base URL)
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          python3 tools/changelog.py notes "$VERSION" --format md > /dev/null \
+            || { echo "::error::CHANGELOG.md needs a '## $VERSION — YYYY-MM-DD' section with notes"; exit 1; }
+          grep -q 'url: https://github.com/sparkle-project/Sparkle' project.yml && grep -qx ' *- package: Sparkle' project.yml \
+            || { echo "::error::project.yml must declare the Sparkle package and depend on it"; exit 1; }
+          grep -q "exactVersion: \"$SPARKLE\"" project.yml || { echo "::error::project.yml Sparkle version != $SPARKLE (update the SHA in release.yml too)"; exit 1; }
+          # The key, feed and website URLs are baked into every copy: a placeholder ships an app that can't update or
+          # links to OWNER.github.io. doctor.sh --ci treats placeholders as todos, so they're caught here.
+          PH="$(plutil -extract SUPublicEDKey raw -o - App/Info.plist) $(plutil -extract SUFeedURL raw -o - App/Info.plist) $(jq -r .baseURL site/site.json) $(grep -m1 'let website' App/Links.swift)"
+          [[ "$PH" != *REPLACE_* && "$PH" != *OWNER* ]] \
+            || { echo "::error::Replace the placeholders first: SUPublicEDKey, and OWNER in SUFeedURL, site/site.json baseURL and Links.website in App/Links.swift (docs/GO_LIVE.md step 7)"; exit 1; }
+          # site.json baseURL == Links.website == SUFeedURL minus /appcast.xml.
+          bash tools/doctor.sh --ci || { echo "::error::One base URL everywhere: fix the ERROR lines above (docs/GO_LIVE.md step 2)"; exit 1; }
+          [ "$(jq -r .releasesRepo site/site.json)" = "$RELEASES_REPO" ] || { echo "::error::site/site.json releasesRepo != $RELEASES_REPO"; exit 1; }
+          [[ "$APP" =~ ^[A-Za-z0-9._-]+$ ]] && [ "$(jq -r .dmgName site/site.json)" = "$APP.dmg" ] || { echo "::error::APP must be letters, digits, . _ - only (GitHub renames other asset names) and site/site.json dmgName must be $APP.dmg"; exit 1; }
+
+      # generate_appcast exits 0 and leaves the item unsigned on a key mismatch; catch it before building.
+      - name: Preflight (SUPublicEDKey matches SPARKLE_ED_PRIVATE_KEY)
+        env:
+          SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
+        run: |
+          python3 -m venv "$RUNNER_TEMP/py"
+          "$RUNNER_TEMP/py/bin/pip" install -q cryptography==50.0.1   # pinned: it runs with the signing key in its environment
+          WANT=$(plutil -extract SUPublicEDKey raw -o - App/Info.plist)
+          GOT=$("$RUNNER_TEMP/py/bin/python" - <<'EOF'
+          import base64, os, re
+          from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+          from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+          # Strict, after the same whitespace strip as publish: generate_appcast rejects anything else in the key.
+          k = base64.b64decode(re.sub(r"\s", "", os.environ["SPARKLE_ED_PRIVATE_KEY"]), validate=True)
+          # 32 bytes: seed (tools/sparkle_keys.py, generate_keys -x). 96 bytes: Sparkle's older export format, the
+          # 64-byte private key then the 32-byte public key (common_cli/Secret.swift, Sparkle 2.10.0).
+          pub = k[64:] if len(k) == 96 else Ed25519PrivateKey.from_private_bytes(k).public_key().public_bytes(Encoding.Raw, PublicFormat.Raw)
+          print(base64.b64encode(pub).decode())
+          EOF
+          )
+          [ "$GOT" = "$WANT" ] || { echo "::error::SUPublicEDKey in App/Info.plist ($WANT) is not the public key of SPARKLE_ED_PRIVATE_KEY ($GOT)"; exit 1; }
+
+      # Before the long build: a wrong SUFeedURL ships an app that never sees its updates. gh-pages is served at the
+      # project URL https://<owner>.github.io/<repo> (GitHub lowercases the owner), or at its CNAME's custom domain.
+      # ponytail: a custom domain on the owner's user site (the OWNER.github.io repo) also moves this URL; not handled.
+      - name: Clone gh-pages, check SUFeedURL points at its appcast
+        env:
+          GH_TOKEN: ${{ secrets.RELEASES_REPO_TOKEN || github.token }}
+        run: |
+          git clone --depth 1 --branch gh-pages "https://x-access-token:$GH_TOKEN@github.com/$RELEASES_REPO.git" build/pages
+          FEED=$(plutil -extract SUFeedURL raw -o - App/Info.plist)
+          if [ -f build/pages/CNAME ]; then WANT="https://$(tr -d '[:space:]' < build/pages/CNAME)"
+          else WANT="https://$(echo "${RELEASES_REPO%%/*}" | tr '[:upper:]' '[:lower:]').github.io/${RELEASES_REPO#*/}"; fi
+          [ "$FEED" = "$WANT/appcast.xml" ] || { echo "::error::SUFeedURL $FEED != $WANT/appcast.xml, where gh-pages is served (docs/GO_LIVE.md steps 2 and 3)"; exit 1; }
+
+      - name: Select Xcode 26
+        run: |
+          sudo xcode-select -s /Applications/Xcode_26.6.app
+          xcodebuild -version
+
+      # A bad App Store Connect key would otherwise fail only at notarization, after the whole build.
+      - name: Preflight (notarytool accepts the App Store Connect key)
+        env:
+          ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          echo -n "$ASC_KEY_P8_BASE64" | base64 --decode -o "$RUNNER_TEMP/AuthKey.p8"
+          xcrun notarytool history --key "$RUNNER_TEMP/AuthKey.p8" --key-id "$ASC_KEY_ID" --issuer "$ASC_ISSUER_ID" > /dev/null \
+            || { echo "::error::notarytool rejected ASC_KEY_P8_BASE64 / ASC_KEY_ID / ASC_ISSUER_ID (docs/RELEASING.md step 3)"; exit 1; }
+
+      - name: Import Developer ID certificate
+        env:
+          P12_BASE64: ${{ secrets.DEVELOPER_ID_P12_BASE64 }}
+          P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          KC="$RUNNER_TEMP/signing.keychain-db"
+          echo -n "$P12_BASE64" | base64 --decode -o "$RUNNER_TEMP/cert.p12"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KC"
+          security set-keychain-settings -lut 21600 "$KC"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KC"
+          security import "$RUNNER_TEMP/cert.p12" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KC"
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KC"
+          security list-keychain -d user -s "$KC"
+          # VERIFY: the runner image preinstalls Apple's Developer ID G2 intermediate in the System
+          # keychain; if codesign can't build the chain, also import
+          # https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer into "$KC".
+
+      - name: Archive and export (Developer ID, hardened runtime, universal)
+        env:
+          TEAM_ID: ${{ secrets.DEVELOPMENT_TEAM }}
+        run: |
+          brew install xcodegen
+          xcodegen generate
+          plutil -replace teamID -string "$TEAM_ID" ExportOptions.plist
+          xcodebuild -project "$APP.xcodeproj" -scheme "$APP" -configuration Release \
+            -destination 'generic/platform=macOS' -archivePath "build/$APP.xcarchive" \
+            ARCHS="arm64 x86_64" ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="Developer ID Application" DEVELOPMENT_TEAM="$TEAM_ID" \
+            ENABLE_HARDENED_RUNTIME=YES OTHER_CODE_SIGN_FLAGS=--timestamp \
+            MARKETING_VERSION="$VERSION" CURRENT_PROJECT_VERSION="$GITHUB_RUN_NUMBER" \
+            archive
+          xcodebuild -exportArchive -archivePath "build/$APP.xcarchive" \
+            -exportOptionsPlist ExportOptions.plist -exportPath build/export
+          codesign -vvv --deep --strict "build/export/$APP.app"
+
+      - name: Check the bundle (Sparkle embedded, universal)
+        run: |
+          A="build/export/$APP.app"
+          [ -d "$A/Contents/Frameworks/Sparkle.framework" ] || { echo "::error::Sparkle.framework is missing from $A/Contents/Frameworks"; exit 1; }
+          for BIN in "$A/Contents/MacOS/$APP" "$A/Contents/Frameworks/Sparkle.framework/Sparkle"; do
+            ARCHS=$(lipo -archs "$BIN")
+            echo "$BIN: $ARCHS"
+            [[ " $ARCHS " == *" arm64 "* && " $ARCHS " == *" x86_64 "* ]] || { echo "::error::$BIN is not universal ($ARCHS)"; exit 1; }
+          done
+
+      # Every build launches before it ships (BUILD_PLAN §9.6). Keep in sync with smoke-intel.
+      - name: Launch smoke test (arm64)
+        run: |
+          "build/export/$APP.app/Contents/MacOS/$APP" & PID=$!
+          sleep 10
+          if kill -0 "$PID" 2>/dev/null; then kill "$PID"; echo "$APP launched and stayed up for 10 s"; exit 0; fi
+          STATUS=0; wait "$PID" || STATUS=$?
+          echo "::error::$APP quit within 10 s of launch (exit status $STATUS)"
+          sleep 5   # ReportCrash writes the .ips a moment after the crash
+          for F in $(ls -t ~/Library/Logs/DiagnosticReports/"$APP"* 2>/dev/null | head -3); do echo "== $F"; cat "$F"; done
+          exit 1
+
+      # ditto keeps the framework symlinks and permissions that upload-artifact's own zip drops.
+      - name: Zip the signed app (notarization upload + Intel smoke test)
+        run: ditto -c -k --keepParent "build/export/$APP.app" "build/$APP.zip"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: app
+          path: build/${{ env.APP }}.zip
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Notarize app, build DMG, notarize DMG
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          AUTH=(--key "$RUNNER_TEMP/AuthKey.p8" --key-id "$ASC_KEY_ID" --issuer "$ASC_ISSUER_ID")
+          # notarytool can exit 0 on an Invalid submission, so check the status and print Apple's log.
+          notarize() {
+            xcrun notarytool submit "$1" "${AUTH[@]}" --wait --timeout 45m --output-format json | tee "$RUNNER_TEMP/notary.json"
+            if [ "$(jq -r .status "$RUNNER_TEMP/notary.json")" != Accepted ]; then
+              xcrun notarytool log "$(jq -r .id "$RUNNER_TEMP/notary.json")" "${AUTH[@]}"
+              return 1
+            fi
+          }
+          notarize "build/$APP.zip"
+          xcrun stapler staple "build/export/$APP.app"
+          mkdir -p build/dmg
+          ditto "build/export/$APP.app" "build/dmg/$APP.app"
+          ln -s /Applications build/dmg/Applications
+          DMG="build/$APP-$VERSION.dmg"
+          # hdiutil intermittently fails with "Resource busy" on hosted runners; -ov makes a retry safe.
+          for i in 1 2 3 4 5; do hdiutil create -volname "$APP" -srcfolder build/dmg -ov -format ULFO "$DMG" && break; [ $i = 5 ] && exit 1; sleep $((i*5)); done
+          codesign --timestamp -s "Developer ID Application" "$DMG"
+          notarize "$DMG"
+          xcrun stapler staple "$DMG"
+          spctl -vvv --assess --type exec "build/export/$APP.app"
+          spctl -vvv --assess --type open --context context:primary-signature "$DMG"
+          echo "DMG=$DMG" >> "$GITHUB_ENV"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dmg
+          path: ${{ env.DMG }}
+          retention-days: 7
+          if-no-files-found: error
+
+  smoke-intel:
+    needs: build
+    runs-on: macos-15-intel   # Intel and the macOS 15 deployment target in one run (label per GitHub's runner docs, 2026)
+    timeout-minutes: 15
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: app
+          path: build
+
+      # Same test as build's "Launch smoke test (arm64)".
+      - name: Launch smoke test (Intel)
+        run: |
+          ditto -x -k "build/$APP.zip" build/export
+          echo "$(uname -m), macOS $(sw_vers -productVersion)"
+          "build/export/$APP.app/Contents/MacOS/$APP" & PID=$!
+          sleep 10
+          if kill -0 "$PID" 2>/dev/null; then kill "$PID"; echo "$APP launched and stayed up for 10 s"; exit 0; fi
+          STATUS=0; wait "$PID" || STATUS=$?
+          echo "::error::$APP quit within 10 s of launch (exit status $STATUS)"
+          sleep 5   # ReportCrash writes the .ips a moment after the crash
+          for F in $(ls -t ~/Library/Logs/DiagnosticReports/"$APP"* 2>/dev/null | head -3); do echo "== $F"; cat "$F"; done
+          exit 1
+
+  publish:
+    needs: [build, smoke-intel]
+    runs-on: macos-26   # generate_appcast is a macOS binary
+    environment: release
+    timeout-minutes: 20
+    # gh-pages has two writers on disjoint files: this job (appcast.xml only) and site.yml (everything but appcast.xml
+    # and CNAME), each in its own group, so a publish waiting for approval never holds up a site deploy. A push rejected
+    # because the other writer pushed first rebases and retries. This group keeps two publishes off appcast.xml at once;
+    # queue: max keeps every pending run (the default queue cancels a pending run when another queues).
+    concurrency: { group: appcast, cancel-in-progress: false, queue: max }
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: dmg
+          path: build
+
+      - name: Release notes from CHANGELOG.md
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "DMG=build/$APP-$VERSION.dmg" >> "$GITHUB_ENV"
+          mkdir -p build/updates build/latest
+          python3 tools/changelog.py notes "$VERSION" --format md > build/notes.md
+          # generate_appcast uses an .html file named like the archive as that item's release notes.
+          python3 tools/changelog.py notes "$VERSION" --format html > "build/updates/$APP-$VERSION.html"
+
+      - name: GitHub Release and Sparkle appcast
+        env:
+          GH_TOKEN: ${{ secrets.RELEASES_REPO_TOKEN || github.token }}
+          SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
+        run: |
+          git clone --depth 1 --branch gh-pages "https://x-access-token:$GH_TOKEN@github.com/$RELEASES_REPO.git" build/pages
+          curl -fsSL -o "$RUNNER_TEMP/sparkle.tar.xz" \
+            "https://github.com/sparkle-project/Sparkle/releases/download/$SPARKLE/Sparkle-$SPARKLE.tar.xz"
+          # The signing key is piped into this tarball's generate_appcast, so check it first.
+          echo "$SPARKLE_SHA256  $RUNNER_TEMP/sparkle.tar.xz" | shasum -a 256 -c
+          mkdir "$RUNNER_TEMP/sparkle" && tar -xf "$RUNNER_TEMP/sparkle.tar.xz" -C "$RUNNER_TEMP/sparkle"
+
+          # Sign before publishing anything.
+          cp "$DMG" build/updates/
+          if [ -f build/pages/appcast.xml ]; then cp build/pages/appcast.xml build/updates/; fi
+          # Whitespace stripped as in the preflight: generate_appcast decodes the key strictly.
+          printf '%s\n' "${SPARKLE_ED_PRIVATE_KEY//[[:space:]]/}" | "$RUNNER_TEMP/sparkle/bin/generate_appcast" --ed-key-file - --embed-release-notes \
+            --download-url-prefix "https://github.com/$RELEASES_REPO/releases/download/$GITHUB_REF_NAME/" build/updates
+          # generate_appcast exits 0 but leaves the item unsigned when SUPublicEDKey doesn't match the key.
+          grep -F "/$(basename "$DMG")\"" build/updates/appcast.xml | grep -q 'sparkle:edSignature="' || { echo "::error::$DMG was not EdDSA-signed: SUPublicEDKey in App/Info.plist is malformed or doesn't match SPARKLE_ED_PRIVATE_KEY"; exit 1; }
+
+          # DMG before appcast so the feed never points at a missing file. Re-runnable: a re-run
+          # makes a new DMG (new EdDSA signature), so it must replace the old asset (--clobber).
+          # The fixed-name copy is what the site's /download/ links to: releases/latest/download/Whydunit.dmg.
+          # Created as a draft and published after the uploads, so "latest" never points at a release without its DMG.
+          cp "$DMG" "build/latest/$APP.dmg"
+          gh release view "$GITHUB_REF_NAME" -R "$RELEASES_REPO" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" -R "$RELEASES_REPO" --draft --title "$APP $VERSION" --notes-file build/notes.md
+          gh release upload "$GITHUB_REF_NAME" "$DMG" "build/latest/$APP.dmg" -R "$RELEASES_REPO" --clobber
+          gh release upload "$GITHUB_REF_NAME" build/updates/appcast.xml -R "$RELEASES_REPO" --clobber
+          gh release edit "$GITHUB_REF_NAME" -R "$RELEASES_REPO" --draft=false
+
+          cp build/updates/appcast.xml build/pages/appcast.xml
+          cd build/pages
+          git config user.name ci && git config user.email ci@users.noreply.github.com
+          git add appcast.xml
+          git commit -m "appcast $VERSION"
+          git push || { git pull --rebase && git push; }   # site.yml pushed since the clone; it never touches appcast.xml

@@ -1,0 +1,62 @@
+# Build the website and deploy it to the public releases repo's gh-pages branch (docs/BUILD_PLAN.md §10.2).
+# release.yml owns appcast.xml there, and CNAME exists only if you add a custom domain: the deploy never deletes or
+# overwrites either.
+#
+# Enabling GitHub Pages (once): in the releases repo, Settings › Pages › Build and deployment › Source "Deploy from a
+# branch", branch gh-pages, folder / (root). The site is then https://OWNER.github.io/whydunit-releases/, which must
+# equal site/site.json baseURL. A custom domain is optional: set it there too and change baseURL to match.
+#
+# Secret RELEASES_REPO_TOKEN (the same fine-grained PAT as release.yml) in a "site" environment whose deployment
+# branch is main: the "release" environment only admits v* tags. Variable RELEASES_REPO as for release.yml.
+name: site
+
+on:
+  push:
+    branches: [main]
+    paths: ["site/**", "CHANGELOG.md", "tools/build_site.py", "tools/changelog.py", ".github/workflows/site.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# gh-pages has two writers on disjoint files: this workflow (everything but appcast.xml and CNAME) and release.yml's
+# publish job (appcast.xml only), each in its own group, so a deploy never waits on a release. A push rejected because
+# the other writer pushed first rebases and retries. This group keeps two deploys apart; the default queue drops an
+# older pending deploy for a newer one, which builds a newer main anyway.
+concurrency: site
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: site
+    permissions:
+      contents: write   # pushes gh-pages with github.token unless RELEASES_REPO_TOKEN is set
+    timeout-minutes: 10
+    env:
+      RELEASES_REPO: ${{ vars.RELEASES_REPO || github.repository }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Build and check
+        run: |
+          # /download/ is built from site.json, so it must name the repo this deploys to.
+          [ "$(jq -r .releasesRepo site/site.json)" = "$RELEASES_REPO" ] || { echo "::error::site/site.json releasesRepo must equal vars.RELEASES_REPO ($RELEASES_REPO)"; exit 1; }
+          # Every canonical, feed and sitemap URL comes from baseURL, and the legal pages name owner and governingLaw.
+          jq -e '[.baseURL, .owner, .governingLaw] | all(test("REPLACE_ME|OWNER") | not)' site/site.json > /dev/null || { echo "::error::Fill site/site.json baseURL, owner and governingLaw before deploying (docs/GO_LIVE.md)"; exit 1; }
+          python3 tools/build_site.py --check
+          python3 tools/build_site.py
+
+      - name: Deploy to gh-pages (keeps appcast.xml and CNAME)
+        env:
+          GH_TOKEN: ${{ secrets.RELEASES_REPO_TOKEN || github.token }}
+        run: |
+          git clone --depth 1 --branch gh-pages "https://x-access-token:$GH_TOKEN@github.com/$RELEASES_REPO.git" pages
+          # Excluded names are neither copied nor deleted, so appcast.xml and CNAME stay exactly as they are.
+          rsync -a --delete --exclude .git --exclude appcast.xml --exclude CNAME site/_dist/ pages/
+          cd pages
+          git add -A
+          if git diff --cached --quiet; then echo "Site unchanged"; exit 0; fi
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -m "site ${GITHUB_SHA::7}"
+          git push || { git -c user.name=ci -c user.email=ci@users.noreply.github.com pull --rebase && git push; }

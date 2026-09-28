@@ -1,0 +1,50 @@
+<!--meta {"title": "Privacy Policy · Whydunit", "description": "What Whydunit does on your Mac and the two things it does online. No account, no analytics, no tracking, and no personal data collected."}-->
+<!-- LEGAL DRAFT — have a lawyer review before launch (site.json "legalReviewed"). -->
+<!-- Must match the app: Sparkle (App/Updater.swift, no SUEnableSystemProfiling, SUFeedURL in App/Info.plist),
+     UploadProbe, BackupService, UploadRetrier, ActivityLog. Update this page whenever any of them changes. -->
+<article class="wrap narrow prose">
+  <h1>Privacy Policy</h1>
+  <p class="muted">Last updated {{updated}}</p>
+
+  <div class="summary">
+    <h2>The short version</h2>
+    <ul>
+      <li>Whydunit runs on your Mac. Your files, their contents and their names never leave it.</li>
+      <li>No account, no analytics, no crash reporting, no advertising and no tracking, in the app or on this website. We collect no personal data.</li>
+      <li>The app goes online only to look for updates and to test iCloud sync in your own iCloud account.</li>
+    </ul>
+  </div>
+
+  <h2>Who we are</h2>
+  <p>Whydunit is made by {{owner}} (“we”, “us”). For anything about privacy, open an issue on <a href="{{issuesURL}}">GitHub Issues</a>.</p>
+
+  <h2>What the app does on your Mac</h2>
+  <ul>
+    <li><b>Scanning.</b> Whydunit reads the sync status and basic details (name, size, dates, sync state and file flags) of the items in iCloud Drive, and in Desktop and Documents when those sync to iCloud. It does not read what is inside your files. Scan results stay in the app's memory on your Mac.</li>
+    <li><b>The sync check.</b> Each time you scan, Whydunit writes one 1&nbsp;MB file of random bytes into a “Whydunit Probe” folder in your iCloud Drive. iCloud uploads it to your iCloud account like any other file. Whydunit then moves it to the Trash. The file holds only random bytes, and its name only a random code for this Mac and one for the file, so Whydunit can recognize its own test files. It goes only to your own iCloud account, never to us.</li>
+    <li><b>Backups.</b> When you choose Back Up, Whydunit copies the files you picked into a Whydunit Backups folder in your home folder (or a folder you choose in Settings), with a list (<code>manifest.json</code>) of each file's full original path, the path of its copy, its size and SHA-256 checksum. These paths include your home folder, and so your user name. They stay there until you remove them. Each Retry Upload also leaves a small hidden file holding the retried file's original path in <code>~/Whydunit Backups/.staging/</code>, so Whydunit can put the file back after a crash. These stay there until you remove them. None of this leaves your Mac.</li>
+    <li><b>Activity log.</b> Whydunit keeps a log of the actions it takes, with the paths of the files involved, in <code>~/Library/Application Support/Whydunit/</code>. It never leaves your Mac.</li>
+    <li><b>Copy Diagnosis and Export.</b> These create text or a CSV list that you can paste or save. They include the names and folders of affected files. A copied diagnosis shows your home folder as <code>~</code> and leaves out your user and Mac names. They leave your Mac only if you send them to someone.</li>
+  </ul>
+
+  <h2>What the app sends over the internet</h2>
+  <p><b>Looking for updates.</b> The app downloads the update list, <code>{{baseURL}}/appcast.xml</code>, from GitHub Pages once a day and when you choose Check for Updates (automatic checks are on by default; turn them off in Settings › General). The request carries the app's name and version, and nothing about your Mac or your files. Updates themselves download from GitHub.</p>
+  <p>As with any connection, GitHub sees your IP address, and each request carries standard headers: a User-Agent naming the app and Sparkle with their versions (for example Whydunit/1.0 Sparkle/2.x), and your preferred language. Nothing else is sent: no analytics, no crash reports and no identifiers.</p>
+
+  <h2>This website</h2>
+  <p>This site and the app's downloads are hosted by GitHub (GitHub Pages and GitHub Releases). GitHub logs the IP address of every visitor for security purposes, under its own <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">privacy statement</a>. We don't get those logs. The site sets no cookies and loads no analytics, fonts or scripts from other servers.</p>
+
+  <h2>GitHub Issues</h2>
+  <p>If you open an issue or comment on GitHub, what you write is public, and GitHub stores it under its privacy statement. We use it only to help you. You can edit or delete your own comments at any time, and we will delete an issue you opened if you ask.</p>
+
+  <h2>Your rights</h2>
+  <p>We don't receive or keep any personal data from the app. The only personal data we handle is what you choose to post on GitHub Issues, which we use to answer you (our legitimate interest). To have it removed, ask in the issue or delete it yourself. If you are unhappy with how we handle your data, you can complain to your local data protection authority.</p>
+  <p>We are based in India. GitHub may process data in the United States and elsewhere. For transfers from the UK and EEA, GitHub relies on Standard Contractual Clauses and the EU-U.S. Data Privacy Framework (see its <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">privacy statement</a>).</p>
+  <!-- GDPR Art. 13(1)(f). GitHub's mechanisms checked against its privacy statement on 2026-09-28; have the lawyer confirm the wording. -->
+
+  <h2>Children</h2>
+  <p>Whydunit is not directed at children and we don't knowingly collect data from them.</p>
+
+  <h2>Changes</h2>
+  <p>If this policy changes, we update the date at the top.</p>
+</article>

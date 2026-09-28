@@ -1,0 +1,84 @@
+# Tag vX.Y.Z-beta.N -> unsigned (ad-hoc signed) universal build as a GitHub pre-release.
+# For testers before Developer ID signing exists: Gatekeeper blocks it until the user right-clicks › Open once.
+# Signed, notarized releases (plain vX.Y.Z tags) are release.yml's job.
+name: beta
+
+on:
+  push:
+    tags: ["v[0-9]+.[0-9]+.[0-9]+-beta.[0-9]+"]
+  workflow_dispatch:   # builds and uploads the zip as an artifact only; nothing is published
+
+permissions:
+  contents: write   # gh release create
+
+env:
+  APP: Whydunit
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  beta:
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Select Xcode 26
+        run: sudo xcode-select -s /Applications/Xcode_26.6.app && xcodebuild -version
+
+      - name: Build (universal, ad-hoc signed)
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"; [[ "$GITHUB_REF_TYPE" == tag ]] || VERSION="0.0.0-dev"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          brew install xcodegen
+          xcodegen generate
+          # Hardened runtime off: with an ad-hoc signature, library validation would refuse the embedded Sparkle
+          # framework and the app would die before its first line (buildmac.app lesson). Sparkle stays off anyway
+          # while SUPublicEDKey is a placeholder (App/Updater.swift).
+          xcodebuild -project Whydunit.xcodeproj -scheme Whydunit -configuration Release \
+            -destination 'generic/platform=macOS' -derivedDataPath build/dd \
+            ARCHS="arm64 x86_64" ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="-" DEVELOPMENT_TEAM="" ENABLE_HARDENED_RUNTIME=NO \
+            MARKETING_VERSION="${VERSION%%-*}" CURRENT_PROJECT_VERSION="$GITHUB_RUN_NUMBER" build
+          mkdir -p build/out && ditto "build/dd/Build/Products/Release/$APP.app" "build/out/$APP.app"
+          lipo -archs "build/out/$APP.app/Contents/MacOS/$APP"
+
+      # Same test as release.yml's "Launch smoke test (arm64)".
+      - name: Launch smoke test
+        run: |
+          "build/out/$APP.app/Contents/MacOS/$APP" & PID=$!
+          sleep 10
+          if kill -0 "$PID" 2>/dev/null; then kill "$PID"; echo "$APP launched and stayed up for 10 s"; exit 0; fi
+          STATUS=0; wait "$PID" || STATUS=$?
+          echo "::error::$APP quit within 10 s of launch (exit status $STATUS)"
+          sleep 5
+          for F in $(ls -t ~/Library/Logs/DiagnosticReports/"$APP"* 2>/dev/null | head -3); do echo "== $F"; cat "$F"; done
+          exit 1
+
+      - name: Zip
+        run: ditto -c -k --keepParent "build/out/$APP.app" "build/$APP-$VERSION.zip"
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: ${{ env.APP }}-${{ env.VERSION }}
+          path: build/${{ env.APP }}-${{ env.VERSION }}.zip
+
+      - name: Publish pre-release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > build/notes.md <<EOF
+          **Unsigned beta.** Whydunit isn't signed with an Apple Developer ID yet, so macOS blocks the first launch.
+
+          1. Download \`$APP-$VERSION.zip\`, double-click it and move **$APP** to Applications.
+          2. Right-click (or Control-click) **$APP** › **Open**, then **Open** again. On macOS 15 and later you may have to
+             go to System Settings › Privacy & Security and click **Open Anyway**.
+
+          Requires macOS 15 or later, Apple silicon or Intel. This beta doesn't update itself; download new betas from
+          this page. Please report problems in [Issues](https://github.com/$GITHUB_REPOSITORY/issues).
+          EOF
+          gh release create "$GITHUB_REF_NAME" "build/$APP-$VERSION.zip" --prerelease \
+            --title "$APP $VERSION (unsigned beta)" --notes-file build/notes.md

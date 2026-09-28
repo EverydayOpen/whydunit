@@ -1,0 +1,20 @@
+# {{name}}
+
+> {{tagline}}
+
+{{name}} is a free Mac app (macOS {{minMacOS}} or later, Apple silicon and Intel) for iCloud Drive files that won't upload. It scans iCloud Drive, plus Desktop and Documents when they sync to iCloud, reads each item's sync status without reading file contents, and explains every problem in plain English: files waiting to upload, files that exist only on this Mac, iCloud storage full, items too large for iCloud, and sync stalled for the whole Mac.
+
+- Free: every feature, on any number of Macs, with no account, subscription or in-app purchase. App folders in iCloud Drive (Pages, Numbers and others) aren't scanned yet.
+- Fixes: Back Up (copies checked with SHA-256), Retry Upload (moves a stuck file out of iCloud Drive and back, one at a time, only after a verified backup) and Restart iCloud Sync (restarts the user's own iCloud sync process, with consent).
+- It never deletes files (it only moves items to the Trash), never signs out of iCloud or changes iCloud settings, and never touches iCloud's system folders.
+- No analytics or telemetry. It goes online only for update checks (daily by default) and a 1 MB test upload to the user's own iCloud Drive during each scan to check that sync works (moved to the Trash afterwards).
+- Not on the Mac App Store. Download: {{baseURL}}/download/
+- Support: {{issuesURL}}
+
+## Pages
+
+{{pageList}}
+
+## Feeds
+
+- [Changelog RSS]({{baseURL}}/feed.xml)

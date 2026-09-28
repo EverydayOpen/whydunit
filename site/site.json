@@ -1,0 +1,13 @@
+{
+  "name": "Whydunit",
+  "baseURL": "https://everydayopen.github.io/whydunit",
+  "tagline": "Find out why your iCloud Drive files won't upload, and fix them without losing a thing.",
+  "releasesRepo": "EverydayOpen/whydunit",
+  "dmgName": "Whydunit.dmg",
+  "minMacOS": "15",
+  "owner": "EverydayOpen",
+  "governingLaw": "the laws of India",
+  "legalUpdated": "2026-09-28",
+  "legalReviewed": false,
+  "placeholders": []
+}
