@@ -35,7 +35,9 @@ SITE = ROOT / "site"
 PLACEHOLDER = re.compile("REPLACE_ME|OWNER")
 # Body of /download/ until it can redirect (build()); check() still needs its one <h1>.
 SOON = ('<article class="wrap narrow prose center"><h1>Coming soon</h1><p>{{name}} 1.0 isn\'t available yet. The '
-        '<a href="/changelog/">changelog</a> and its <a href="/feed.xml">RSS feed</a> will say when it is.</p></article>\n')
+        '<a href="/changelog/">changelog</a> and its <a href="/feed.xml">RSS feed</a> will say when it is.</p>'
+        '<p>Want to try it now? The <a href="https://github.com/{{releasesRepo}}/releases">unsigned beta</a> is on '
+        'GitHub. Right-click it and choose Open the first time.</p></article>\n')
 
 
 class Raw(str):
