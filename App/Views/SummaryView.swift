@@ -20,87 +20,70 @@ struct SummaryView: View {
     }
 
     var body: some View {
-        Form {
-            Section {
-                HStack(spacing: Space.m) {
-                    // VERIFY: both symbol effects reach the Image inside SeverityIcon's tile.
-                    SeverityIcon(severity: diagnosis.verdict, size: 44, tile: true)
-                        .contentTransition(.symbolEffect(.replace))          // the verdict changed on a rescan
-                        .symbolEffect(.bounce, value: diagnosis.scannedAt)   // a new result landed
-                        .symbolEffectsRemoved(reduceMotion)
-                        // Always the accent, never the severity colour: severity never glows (DESIGN.md §1.1).
-                        .background {
-                            RadialGradient(colors: [Color.accentColor.opacity(0.35), .clear], center: .center,
-                                           startRadius: 0, endRadius: 40)
-                                .frame(width: 80, height: 80)
-                        }
-                    VStack(alignment: .leading, spacing: Space.xxs) {
-                        Text(diagnosis.headline?.title ?? "No problems found")
-                            .font(.title2.weight(.bold))
-                        Text(meta)
-                            .font(.callout)
-                            .monospacedDigit()
-                            .foregroundStyle(.secondary)
-                        if case .failed(let message) = store.scanState {
-                            Text("The last scan didn't finish: \(message)")
-                                .font(.callout)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
+        VStack(spacing: 0) {
+            // The stage's one lifted object, over the Sky; the rows below stay native (DESIGN.md §3).
+            hero
+                .padding(Space.m)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .overlay {   // lit top edge, and the rim dark mode otherwise lacks
+                    RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(.white.opacity(0.35), lineWidth: 0.5)
                 }
-                .padding(.vertical, Space.s)
-                .accessibilityElement(children: .combine)
+                .lifted()
                 .flipIn(shown, index: 0, reduceMotion: reduceMotion)
-            }
-
-            if !diagnosis.findings.isEmpty {
-                Section("Findings") {
-                    // Only the row's content turns; the Form cell never does (MOTION §3.4). VERIFY cells don't clip it.
-                    ForEach(Array(diagnosis.findings.enumerated()), id: \.element.id) { i, finding in
-                        Button { store.route = .finding(finding.rule) } label: { FindingRow(finding: finding) }
-                            .buttonStyle(.plain)
-                            .flipIn(shown, index: i + 1, reduceMotion: reduceMotion)
-                    }
-                }
-            }
-
-            Section("iCloud Drive") {
-                LabeledContent("Sync check") {
-                    let p = probe
-                    HStack(spacing: Space.xs) {
-                        Tag(text: p.word, tint: p.tint)
-                        if let detail = p.detail { Text(detail).monospacedDigit() }
-                    }
-                    .accessibilityElement(children: .combine)
-                }
-                // The scan's value until the fresh one arrives, instead of flashing "Unknown".
-                LabeledContent("Free on this Mac") {
-                    Text(ByteFormat.string(freeBytes ?? store.freeBytes)).monospacedDigit()
-                }
-                LabeledContent {
-                    Text(scannedFolders)
-                } label: {
-                    Text("Scanned folders")
-                    Text("App folders such as Pages and Numbers aren't checked yet.")
-                }
-                // The Sync Stalled and Upload Errors steps say to copy the diagnosis for Apple Support.
-                LabeledContent {
-                    Button(copied ? "Copied" : "Copy Diagnosis") {
-                        store.copyDiagnosis()
-                        copied = true
-                        Task {
-                            try? await Task.sleep(for: .seconds(1.5))
-                            copied = false
+                .padding(.horizontal, Space.l)   // aligns with the grouped Form's inset
+                .padding(.top, Space.l)
+            // VERIFY: the Form's own top inset doesn't double the gap under the card.
+            Form {
+                if !diagnosis.findings.isEmpty {
+                    Section("Findings") {
+                        // Only the row's content turns; the Form cell never does (MOTION §3.4). VERIFY cells don't clip it.
+                        ForEach(Array(diagnosis.findings.enumerated()), id: \.element.id) { i, finding in
+                            Button { store.route = .finding(finding.rule) } label: { FindingRow(finding: finding) }
+                                .buttonStyle(.plain)
+                                .flipIn(shown, index: i + 1, reduceMotion: reduceMotion)
                         }
                     }
-                } label: {
-                    Text("Diagnosis")
-                    Text("Plain text to share with Apple Support.")
+                }
+
+                Section("iCloud Drive") {
+                    LabeledContent("Sync check") {
+                        let p = probe
+                        HStack(spacing: Space.xs) {
+                            Tag(text: p.word, tint: p.tint)
+                            if let detail = p.detail { Text(detail).monospacedDigit() }
+                        }
+                        .accessibilityElement(children: .combine)
+                    }
+                    // The scan's value until the fresh one arrives, instead of flashing "Unknown".
+                    LabeledContent("Free on this Mac") {
+                        Text(ByteFormat.string(freeBytes ?? store.freeBytes)).monospacedDigit()
+                    }
+                    LabeledContent {
+                        Text(scannedFolders)
+                    } label: {
+                        Text("Scanned folders")
+                        Text("App folders such as Pages and Numbers aren't checked yet.")
+                    }
+                    // The Sync Stalled and Upload Errors steps say to copy the diagnosis for Apple Support.
+                    LabeledContent {
+                        Button(copied ? "Copied" : "Copy Diagnosis") {
+                            store.copyDiagnosis()
+                            copied = true
+                            Task {
+                                try? await Task.sleep(for: .seconds(1.5))
+                                copied = false
+                            }
+                        }
+                    } label: {
+                        Text("Diagnosis")
+                        Text("Plain text to share with Apple Support.")
+                    }
                 }
             }
+            .formStyle(.grouped)
+            .scrollContentBackground(.hidden)   // VERIFY: grouped cells keep their own fill over the wash
         }
-        .formStyle(.grouped)
-        .scrollContentBackground(.hidden)   // VERIFY: grouped cells keep their own fill over the wash
         .background { Sky() }
         .task(id: diagnosis.scannedAt) {
             // After the first frame, so the rows have a start to flip from; a rescan shown here counts as flipped.
@@ -109,6 +92,36 @@ struct SummaryView: View {
             // Off the main actor: it can block on a busy fileproviderd.
             freeBytes = await Task.detached { SystemInfo.freeBytes(at: SystemInfo.homeDirectory) }.value
         }
+    }
+
+    private var hero: some View {
+        HStack(spacing: Space.m) {
+            // VERIFY: both symbol effects reach the Image inside SeverityIcon's tile.
+            SeverityIcon(severity: diagnosis.verdict, size: 44, tile: true)
+                .contentTransition(.symbolEffect(.replace))          // the verdict changed on a rescan
+                .symbolEffect(.bounce, value: diagnosis.scannedAt)   // a new result landed
+                .symbolEffectsRemoved(reduceMotion)
+                // Always the accent, never the severity colour: severity never glows (DESIGN.md §1.1).
+                .background {
+                    RadialGradient(colors: [Color.accentColor.opacity(0.35), .clear], center: .center,
+                                   startRadius: 0, endRadius: 40)
+                        .frame(width: 80, height: 80)
+                }
+            VStack(alignment: .leading, spacing: Space.xxs) {
+                Text(diagnosis.headline?.title ?? "No problems found")
+                    .font(.title2.weight(.bold))
+                Text(meta)
+                    .font(.callout)
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+                if case .failed(let message) = store.scanState {
+                    Text("The last scan didn't finish: \(message)")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .accessibilityElement(children: .combine)
     }
 
     /// "4,213 items checked · 2 need attention · 3 items with no sync status · 1 folder couldn't be checked",

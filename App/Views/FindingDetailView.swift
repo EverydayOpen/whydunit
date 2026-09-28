@@ -16,6 +16,8 @@ struct FindingDetailView: View {
     @State private var copied = false
     /// The finding the default selection was made for; a rescan keeps the user's own selection instead.
     @State private var preselected: RuleID?
+    /// Focused once rows are pre-selected, so the selection shows in the accent colour, not the unfocused gray.
+    @FocusState private var tableFocused: Bool
 
     var body: some View {
         if let finding = store.finding(rule) {
@@ -70,6 +72,7 @@ struct FindingDetailView: View {
                 }
             }
             reload(finding)
+            tableFocused = !store.selection.isEmpty   // VERIFY: Table honours .focused and the selection turns accent
         }
         // Retry Upload re-reads each item into itemsByPath; show the fresh Status and Size here too.
         .onChange(of: store.isRetrying) { _, running in
@@ -97,13 +100,13 @@ struct FindingDetailView: View {
                 }
                 .help(row.item.path)
             }
-            .width(min: 100, ideal: 280)
+            .width(min: 100, ideal: 220)
             TableColumn("Folder", value: \.folder) { row in
                 Text(row.folder)
                     .lineLimit(1)
                     .truncationMode(.middle)
             }
-            .width(min: 70, ideal: 200)
+            .width(min: 70, ideal: 240)
             TableColumn("Size", value: \.sortSize) { row in
                 Text(ByteFormat.string(row.item.logicalSize, lowerBound: row.item.listingFailed))
                     .monospacedDigit()
@@ -123,6 +126,9 @@ struct FindingDetailView: View {
             }
             .width(min: 70, ideal: 100)
         }
+        // Past the last row macOS 26 draws the alternating fills as detached empty slabs.
+        .alternatingRowBackgrounds(.disabled)
+        .focused($tableFocused)
         .contextMenu(forSelectionType: String.self) { paths in
             if !paths.isEmpty {
                 if let action = finding.primaryAction, action == .backUp || action == .retryUpload {

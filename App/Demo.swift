@@ -86,7 +86,7 @@ import WhydunitMac
                        outcome: outcome, detail: detail)
         }
         func backedUp(_ m: BackupManifest, hoursAgo: Double) -> [AuditEntry] {
-            m.entries.reversed().map { entry(hoursAgo, .backUp, $0.source, "Copied and verified in \(m.folder)") }
+            m.entries.reversed().map { entry(hoursAgo, .backUp, $0.source, "Copied and verified in \((m.folder as NSString).abbreviatingWithTildeInPath)") }
         }
         let trashed = store.backupsRoot.appendingPathComponent(stamp.string(from: scanned.addingTimeInterval(-11 * 86_400)))
         // Newest first, like ActivityLog.all. Retries only of items with a verified backup, as the app does.

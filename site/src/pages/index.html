@@ -74,7 +74,7 @@
       <div><dt>of file contents read during a scan</dt><dd>0 bytes</dd></div>
       <div><dt>on every backup copy</dt><dd>SHA-256</dd></div>
       <div><dt>retries, each re-checked first</dt><dd>1 at a time</dd></div>
-      <div><dt>trackers, analytics or accounts</dt><dd>None</dd></div>
+      <div><dt>it ever talks to: its update feed</dt><dd>1 server</dd></div>
     </dl>
   </div>
 </section>
@@ -108,19 +108,19 @@
     <ol class="steps">
       <li class="reveal">
         <h3>Scan</h3>
-        <p>Whydunit reads the sync status of your files in iCloud Drive, plus Desktop and Documents if they sync (app folders such as Pages and Numbers aren't checked yet). It downloads nothing, and checks that sync works by uploading one small test file.</p>
+        <p>Reads the sync status of your files in iCloud Drive, plus Desktop and Documents when they sync. It downloads nothing.</p>
       </li>
       <li class="reveal">
         <h3>Plain-English diagnosis</h3>
-        <p>Each problem gets a name, what it means and what to do next: iCloud storage full, a file too big for iCloud, sync stalled for the whole Mac, files that exist only on this Mac, and more.</p>
+        <p>Each finding gets a name, what it means and what to do next.</p>
       </li>
       <li class="reveal">
         <h3>Verified backup</h3>
-        <p>Before Retry Upload moves a file, it needs a verified backup of that exact file. Back Up copies it to a Whydunit Backups folder outside iCloud and checks every copy against the original with SHA-256.</p>
+        <p>Back Up copies the file to a Whydunit Backups folder outside iCloud and checks it with SHA-256.</p>
       </li>
       <li class="reveal">
         <h3>Safe retry</h3>
-        <p>Stuck files are moved out of iCloud Drive and back, one at a time. If sync has stalled for the whole Mac, Whydunit can restart iCloud's sync process, with your OK.</p>
+        <p>Moves a stuck file out of iCloud Drive and back, one at a time, only after a verified backup.</p>
       </li>
     </ol>
   </div>
@@ -273,7 +273,7 @@
       </details>
       <details>
         <summary>Can it fix every iCloud problem?</summary>
-        <p>No, and it will tell you so. Some problems are on Apple's side, such as an iCloud outage or an account problem, and nothing on your Mac can fix those. When that looks likely, Whydunit says so and gives you a diagnosis to send to Apple Support.</p>
+        <p>No, and it will tell you so. Some problems are on Apple's side, such as an iCloud outage or an account problem, and nothing on your Mac can fix those. When that looks likely, Whydunit says so and gives you a diagnosis to send to Apple Support. App folders in iCloud Drive, such as those of Pages and Numbers, aren't checked yet.</p>
       </details>
       <details>
         <summary>Is it really free?</summary>

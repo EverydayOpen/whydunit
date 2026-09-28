@@ -35,20 +35,23 @@ struct SeverityIcon: View {
     }
 }
 
-/// Bordered list of item names and folders with a trailing detail, used inside the action sheets.
+/// Bordered list of item names and folders with a trailing detail, used inside the action sheets. Whole rows only,
+/// at most four tall; the folder reads as in the finding's table ("iCloud Drive › Finance").
 struct ItemList<Trailing: View>: View {
     let paths: [String]
     @ViewBuilder let trailing: (String) -> Trailing
+    @Environment(AppStore.self) private var store
 
     var body: some View {
         List(paths, id: \.self) { path in
             HStack(spacing: Space.xs) {
                 // The folder too, so two items with the same name can be told apart.
-                VStack(alignment: .leading) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text((path as NSString).lastPathComponent)
                         .lineLimit(1)
                         .truncationMode(.middle)
-                    Text(((path as NSString).deletingLastPathComponent as NSString).abbreviatingWithTildeInPath)
+                    Text(store.itemsByPath[path]?.displayFolder
+                         ?? ((path as NSString).deletingLastPathComponent as NSString).abbreviatingWithTildeInPath)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
@@ -62,7 +65,7 @@ struct ItemList<Trailing: View>: View {
             }
         }
         .listStyle(.bordered(alternatesRowBackgrounds: true))
-        .frame(height: 150)
+        .frame(height: CGFloat(min(paths.count, 4)) * 40 + 2)   // VERIFY the 40pt row height on a Mac
     }
 }
 

@@ -262,7 +262,7 @@ enum ActiveSheet: Identifiable {
                 await log.append(AuditEntry(
                     date: manifest.created, action: .backUp, target: entry.source,
                     outcome: entry.verified ? .succeeded : .failed,
-                    detail: entry.verified ? "Copied and verified in \(manifest.folder)"
+                    detail: entry.verified ? "Copied and verified in \((manifest.folder as NSString).abbreviatingWithTildeInPath)"
                                            : "The copy didn't match the original"))
             }
             await refreshHistory()

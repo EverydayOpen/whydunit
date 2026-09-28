@@ -26,11 +26,18 @@ struct WelcomeView: View {
                     .offset(y: shown || reduceMotion ? 0 : 16)
                     .opacity(shown ? 1 : 0)
             }
+            // The brand light behind the object, as on the Summary hero. A background, so the 260pt halo doesn't
+            // grow the 112pt icon's layout; static, only faded in with the icon.
+            .background {
+                RadialGradient(colors: [Color.accentColor.opacity(0.28), .clear], center: .center, startRadius: 0, endRadius: 130)
+                    .frame(width: 260, height: 260)
+                    .opacity(shown ? 1 : 0)
+            }
             .padding(.bottom, Space.xs)
             .accessibilityHidden(true)
             Text("Find out which iCloud Drive files are stuck, and why.")
                 .font(.system(size: 26, weight: .bold))
-                .tracking(-0.4)
+                .fixedSize(horizontal: false, vertical: true)   // wraps to two lines at the 1000pt minimum
             Text("Nothing about your files leaves this Mac. Whydunit reads file status, never file contents, and checks sync by uploading one small test file, which it then moves to the Trash.")
                 .font(.callout)
                 .foregroundStyle(.secondary)

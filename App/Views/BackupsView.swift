@@ -36,7 +36,8 @@ struct BackupsView: View {
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 Text(backup.created.formatted(date: .abbreviated, time: .shortened))
-                    .font(.system(.body, design: .monospaced, weight: .semibold))
+                    .font(.system(.body, design: .rounded, weight: .semibold))
+                    .monospacedDigit()
                 Text(ByteFormat.string(backup.totalBytes))
                     .font(.callout)
                     .monospacedDigit()

@@ -105,7 +105,7 @@ main:focus { outline: none; }
 h1 { font-size: clamp(2.6rem, 1.4rem + 5vw, 4.75rem); letter-spacing: -.032em; line-height: 1.02; text-wrap: balance; }
 h2 { font-size: clamp(2rem, 1.2rem + 3vw, 3.1rem); letter-spacing: -.026em; line-height: 1.06; text-wrap: balance; }
 .eyebrow { margin: 0 0 14px; color: var(--accent); font-size: 13px; font-weight: 600; }
-main > section { padding-block: clamp(72px, 11vw, 128px); }
+main > section { padding-block: clamp(56px, 8vw, 96px); }
 .wrap { max-width: 1080px; }
 .wide { max-width: 1200px; margin-inline: auto; padding-inline: 20px; }
 .read { max-width: 720px; }
@@ -185,7 +185,6 @@ details p { margin: 0 0 20px; color: var(--text-2); }
 .finale h2 { margin-bottom: 24px; }
 .finale .panel h2, .finale .panel .facts { color: var(--text); }
 .finale .actions { margin-top: 0; }
-@media (max-width: 640px) { .finale .panel { margin-inline: -20px; border-radius: 0; } }
 @media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
   .finale .panel { perspective: var(--persp-card); }
   .finale .icon[data-tilt] { --tilt: 12deg; transform: rotateX(calc(var(--py) * var(--tilt) * -1)) rotateY(calc(var(--px) * var(--tilt))); transition: transform var(--t-slow) var(--ease-out); }
@@ -217,12 +216,12 @@ code { background: var(--bg-alt); box-shadow: inset 0 0 0 .5px rgb(var(--ink) / 
 .official svg { flex: none; width: 18px; height: 18px; margin-top: 1px; color: var(--accent); }
 .fine { margin: 10px 0 0; }
 .official + .fine { margin-top: 24px; }
-.hero { overflow: clip; padding-top: clamp(56px, 8vw, 96px); }
-.hero h1 { max-width: 15em; margin-inline: auto; }
-.hero .lede { margin: 20px auto 0; }
+.hero { overflow: clip; padding-top: clamp(40px, 6vw, 72px); }
+.hero h1 { max-width: 15em; margin-inline: auto; font-size: clamp(2.4rem, 1.2rem + 4.2vw, 4.25rem); } .hero h1 .dim { display: block; }
+.hero .lede { margin: 16px auto 0; }
 .caption { margin: 36px 0 0; font-size: 13px; color: var(--text-2); text-align: center; }
 /* Hero (DESIGN.md §4.3): the window's lower edge hangs off the sky onto paper. */
-.stage.daylight { margin-top: 56px; padding: 0 clamp(12px, 5vw, 72px); }
+.stage.daylight { margin-top: 40px; padding: 0 clamp(12px, 5vw, 72px); }
 .stage.daylight::before { inset: 0 0 14%;
   background: var(--grain),
     radial-gradient(55% 45% at 80% 8%, var(--haze), transparent 70%),
@@ -299,7 +298,7 @@ code { background: var(--bg-alt); box-shadow: inset 0 0 0 .5px rgb(var(--ink) / 
   .win-main { padding: 14px; }
   .win-h { font-size: 16px; }
 }
-.proof-sec { padding-top: 0 !important; }   /* right under the hero */
+.proof-sec { padding-top: 0 !important; padding-bottom: clamp(40px, 6vw, 64px); }   /* right under the hero */
 @media (max-width: 520px) { .proof div { padding: 18px; } }
 .split { display: grid; gap: 40px; align-items: center; }
 @media (min-width: 900px) { .split { grid-template-columns: 1fr 1fr; } }
