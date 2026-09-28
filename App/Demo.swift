@@ -1,10 +1,11 @@
 #if DEBUG
-import Foundation
+import AppKit
 import WhydunitCore
 import WhydunitMac
 
 /// Screenshots without a Mac user (.github/workflows/screens.yml). A Debug build launched with
-/// `-demoScreen <welcome|summary|finding|backups|activity|backUpSheet>` shows a made-up scan on that screen.
+/// `-demoScreen <welcome|summary|finding|backups|activity|backUpSheet>` shows a made-up scan on that screen, and
+/// `-demoAppearance light|dark` sets the look (the global AppleInterfaceStyle default doesn't reach a new app).
 /// Nothing is scanned, opened, written or moved: the sample items don't exist, and AppStore skips its staging recovery
 /// and its history read. iCloud Drive's folder must exist (the workflow makes an empty one), or every screen is
 /// "iCloud Drive Is Off": ICloudLocations has no public initializer to fake it with.
@@ -14,6 +15,10 @@ import WhydunitMac
     static let screen = UserDefaults.standard.string(forKey: "demoScreen").flatMap(Screen.init(rawValue:))
 
     static func fill(_ store: AppStore, _ screen: Screen) {
+        if let look = UserDefaults.standard.string(forKey: "demoAppearance") {
+            // Next turn: AppDelegate.init builds the store, maybe before NSApp exists.
+            Task { NSApp.appearance = NSAppearance(named: look == "dark" ? .darkAqua : .aqua) }
+        }
         guard screen != .welcome else { return }   // never scanned
         let scanned = Date().addingTimeInterval(-120)   // "Scanned 2 minutes ago"
         let home = SystemInfo.homeDirectory

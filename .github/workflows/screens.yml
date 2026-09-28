@@ -81,18 +81,10 @@ jobs:
           # Without an iCloud Drive folder every screen says "iCloud Drive Is Off". Empty; nothing syncs on the runner.
           mkdir -p "$HOME/Library/Mobile Documents/com~apple~CloudDocs"
           system_profiler SPDisplaysDataType | grep -i resolution || true   # the window is 1120×760 pt
-          defaults delete -g AppleInterfaceStyleSwitchesAutomatically 2>/dev/null || true
           for MODE in light dark; do
-            # The global default reaches a freshly launched app; the argument backs it up for this app alone.
-            if [[ $MODE == dark ]]; then
-              defaults write -g AppleInterfaceStyle Dark
-              LOOK=(-AppleInterfaceStyle Dark)
-            else
-              defaults delete -g AppleInterfaceStyle 2>/dev/null || true
-              LOOK=()
-            fi
             for SCREEN in welcome summary finding backups activity backUpSheet; do
-              open -F "$BUNDLE" --args -demoScreen "$SCREEN" "${LOOK[@]}"   # -F: no restored windows
+              # -F: no restored windows. Demo sets the look itself: the global AppleInterfaceStyle default didn't.
+              open -F "$BUNDLE" --args -demoScreen "$SCREEN" -demoAppearance "$MODE"
               WIN=""
               for _ in $(seq 60); do
                 WIN=$("$RUNNER_TEMP/window" "$APP")
