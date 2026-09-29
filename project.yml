@@ -6,8 +6,8 @@ options:
 packages:
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle
-    exactVersion: "2.10.0"   # pinned (DECISIONS.md #11): CI builds what the release ships. Bump on purpose in a PR,
-                             # with SPARKLE and SPARKLE_SHA256 in release.yml's env (its preflight checks SPARKLE matches)
+    revision: "eef1a539a373c1f1a320624b1130fc5de7b2e100"   # Sparkle 2.10.0; a commit, not a movable tag (DECISIONS.md #11).
+    # Bump on purpose in a PR, with SPARKLE, SPARKLE_REV and SPARKLE_SHA256 in release.yml (its preflight checks SPARKLE_REV)
   Whydunit:
     path: .   # this repo's Package.swift (WhydunitCore + WhydunitMac). VERIFY: Xcode accepts a local package in the project's own folder.
 targets:

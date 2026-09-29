@@ -16,18 +16,27 @@ struct FindingDetailView: View {
     @State private var copied = false
     /// The finding the default selection was made for; a rescan keeps the user's own selection instead.
     @State private var preselected: RuleID?
+    /// Focused once rows are pre-selected, so the selection shows in the accent colour, not the unfocused gray.
+    @FocusState private var tableFocused: Bool
 
     var body: some View {
         if let finding = store.finding(rule) {
             detail(finding)
         } else {
             ContentUnavailableView {
-                Label("No Longer Found", systemImage: "checkmark.circle")
+                Label {
+                    Text("No Longer Found")
+                } icon: {
+                    Image(systemName: "checkmark.circle").symbolRenderingMode(.hierarchical).foregroundStyle(.tint)
+                }
             } description: {
                 Text("The latest scan didn't find this problem.")
             } actions: {
                 Button("Show Summary") { store.route = .summary }
+                    .buttonStyle(.borderedProminent)
+                    .buttonBorderShape(.capsule)
             }
+            .skyBackdrop()
         }
     }
 
@@ -53,6 +62,8 @@ struct FindingDetailView: View {
                 Spacer(minLength: 0)
             }
         }
+        // The header sits on the Sky; the Table draws its own opaque background over the rest (DESIGN.md §5.2).
+        .background { Sky() }
         .onChange(of: finding, initial: true) { _, finding in
             if preselected == finding.rule {
                 store.selection.formIntersection(finding.itemPaths)
@@ -70,6 +81,7 @@ struct FindingDetailView: View {
                 }
             }
             reload(finding)
+            tableFocused = !store.selection.isEmpty   // VERIFY: Table honours .focused and the selection turns accent
         }
         // Retry Upload re-reads each item into itemsByPath; show the fresh Status and Size here too.
         .onChange(of: store.isRetrying) { _, running in
@@ -86,8 +98,7 @@ struct FindingDetailView: View {
         Table(rows, selection: $store.selection, sortOrder: $sortOrder) {
             TableColumn("Name", value: \.name) { row in
                 HStack(spacing: Space.xs) {
-                    // VERIFY: returns a generic icon (never materializes) for dataless items.
-                    Image(nsImage: NSWorkspace.shared.icon(forFile: row.item.path))
+                    Image(nsImage: typeIcon(path: row.item.path, item: row.item))
                         .resizable()
                         .frame(width: 16, height: 16)
                         .accessibilityHidden(true)
@@ -97,21 +108,23 @@ struct FindingDetailView: View {
                 }
                 .help(row.item.path)
             }
-            .width(min: 100, ideal: 280)
+            .width(min: 100, ideal: 220)
             TableColumn("Folder", value: \.folder) { row in
                 Text(row.folder)
                     .lineLimit(1)
                     .truncationMode(.middle)
             }
-            .width(min: 70, ideal: 200)
+            .width(min: 70, ideal: 240)
             TableColumn("Size", value: \.sortSize) { row in
                 Text(ByteFormat.string(row.item.logicalSize, lowerBound: row.item.listingFailed))
                     .monospacedDigit()
             }
             .width(min: 90, ideal: 100)   // room for "At least 1.2 GB"
             .alignment(.numeric)   // right-aligned, like Finder
-            TableColumn("Status", value: \.status)
-                .width(min: 100, ideal: 150)
+            TableColumn("Status", value: \.status) { row in
+                StatusTag(status: row.state)
+            }
+            .width(min: 100, ideal: 150)
             // Minimums (430 in all) fit the 1000 pt window with sidebar and inspector open. Modified shows the
             // date only so they do; the tooltip and the inspector have the time.
             TableColumn("Modified", value: \.sortModified) { row in
@@ -121,6 +134,9 @@ struct FindingDetailView: View {
             }
             .width(min: 70, ideal: 100)
         }
+        // Past the last row macOS 26 draws the alternating fills as detached empty slabs.
+        .alternatingRowBackgrounds(.disabled)
+        .focused($tableFocused)
         .contextMenu(forSelectionType: String.self) { paths in
             if !paths.isEmpty {
                 if let action = finding.primaryAction, action == .backUp || action == .retryUpload {
@@ -141,10 +157,11 @@ struct FindingDetailView: View {
 
     private func header(_ finding: Finding) -> some View {
         VStack(alignment: .leading, spacing: Space.s) {
-            HStack(spacing: Space.xs) {
-                SeverityIcon(severity: finding.severity, size: 20)
+            HStack(spacing: Space.s) {
+                FindingWell(finding: finding, size: 44)
                 Text(finding.title)
-                    .font(.title2.weight(.semibold))
+                    .font(.system(size: 22, weight: .semibold))
+                    .tracking(-0.3)
             }
             .accessibilityElement(children: .combine)
             .accessibilityAddTraits(.isHeader)
@@ -152,19 +169,25 @@ struct FindingDetailView: View {
             // Capped like System Settings' detail panes: full-width lines in a wide window are hard to read.
             Text(finding.explanation)
                 .textSelection(.enabled)
-                .frame(maxWidth: 640, alignment: .leading)
+                .frame(maxWidth: 620, alignment: .leading)
 
             if !finding.steps.isEmpty {
-                VStack(alignment: .leading, spacing: Space.xxs) {
-                    Text("What to Try").font(.headline)
+                VStack(alignment: .leading, spacing: Space.xs) {
+                    Text("What to Try").smallCapsHeader()
                     ForEach(Array(finding.steps.enumerated()), id: \.offset) { index, step in
                         HStack(alignment: .firstTextBaseline, spacing: Space.xs) {
-                            Text("\(index + 1).").monospacedDigit().foregroundStyle(.secondary)
+                            Text("\(index + 1)")
+                                .font(.system(.caption, design: .rounded, weight: .bold))
+                                .monospacedDigit()
+                                .frame(width: 20, height: 20)
+                                .background(Color.accentColor.opacity(0.14), in: Circle())
                             Text(step)
                         }
+                        .accessibilityElement(children: .combine)
                     }
                 }
-                .frame(maxWidth: 640, alignment: .leading)
+                .frame(maxWidth: 620, alignment: .leading)
+                .padding(.top, Space.xxs)
             }
 
             // Moved Files can name folders outside the scan roots (Relocated Items, iCloud Drive (Archive)) beside
@@ -179,6 +202,7 @@ struct FindingDetailView: View {
                 }
                 .font(.callout.monospaced())
                 .textSelection(.enabled)
+                .recessed()
             }
 
             if let command = finding.command {
@@ -192,6 +216,7 @@ struct FindingDetailView: View {
                 .font(.callout.monospaced())
                 .textSelection(.enabled)
                 .help(command)
+                .recessed()
             }
 
             // Stacked when the row doesn't fit (minimum window, inspector open), instead of truncated titles.
@@ -217,14 +242,15 @@ struct FindingDetailView: View {
             let button = Button(title(action)) { run(action, finding) }
                 .disabled(needsSelection(action) && store.selection.isEmpty)
             if action == finding.primaryAction {
-                button.buttonStyle(.borderedProminent)
+                button.buttonStyle(.borderedProminent).buttonBorderShape(.capsule)
             } else {
-                button.buttonStyle(.bordered)
+                button.buttonStyle(.bordered).buttonBorderShape(.capsule)
             }
         }
         if !rows.isEmpty {
             Button("Export List…") { export(finding) }
                 .buttonStyle(.bordered)
+                .buttonBorderShape(.capsule)
         }
     }
 
@@ -318,12 +344,23 @@ struct FindingDetailView: View {
     }
 }
 
+private extension View {
+    /// Mono technical text (paths, a command) in a recessed well, like the sheets' preflight block (DESIGN.md §5.2);
+    /// 620 pt wide with its padding, the explanation's measure.
+    func recessed() -> some View {
+        frame(maxWidth: 620 - 2 * Space.s, alignment: .leading)
+            .padding(Space.s)
+            .background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+}
+
 /// A table row with its sort keys worked out once: sorting on ItemRecord's computed name, folder and status
 /// redid that work (path splitting, lowercasing) on every comparison. Unknown sizes and dates sort first.
 private struct ItemRow: Identifiable, Sendable {
     let item: ItemRecord
     let name: String
     let folder: String
+    let state: ItemStatus
     let status: String
     let sortSize: Int64
     let sortModified: Date
@@ -333,8 +370,27 @@ private struct ItemRow: Identifiable, Sendable {
         self.item = item
         name = item.name
         folder = item.displayFolder
-        status = ICloudClassifier.status(of: item).label
+        state = ICloudClassifier.status(of: item)
+        status = state.label
         sortSize = item.logicalSize ?? -1
         sortModified = item.modified ?? .distantPast
+    }
+}
+
+/// Status as a tag: accent while waiting, red when failed, gray otherwise. White on a selected row, like its text.
+private struct StatusTag: View {
+    let status: ItemStatus
+    @Environment(\.backgroundProminence) private var prominence
+
+    var body: some View {
+        Tag(text: status.label, tint: prominence == .increased ? .white : tint)
+    }
+
+    private var tint: Color {
+        switch status {
+        case .waitingToUpload: .accentColor
+        case .uploadFailed: .red
+        default: .secondary
+        }
     }
 }

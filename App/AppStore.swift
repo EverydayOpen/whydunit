@@ -77,6 +77,14 @@ enum ActiveSheet: Identifiable {
         locations = ICloudLocations.current()
         backupsRoot = UserDefaults.standard.string(forKey: "backupsRoot")
             .map { URL(fileURLWithPath: $0, isDirectory: true) } ?? BackupService.defaultRoot
+        #if DEBUG
+        // CI screenshots (App/Demo.swift): sample data only, so no staging recovery and no history read from disk.
+        if let screen = Demo.screen {
+            self.recovery = Task { Array<String>() }   // self.: a local `recovery` follows
+            Demo.fill(self, screen)
+            return
+        }
+        #endif
         // retryUpload awaits it, so it finishes before any retry can start.
         let stagingRoot = Self.stagingRoot
         let recovery = Task.detached { UploadRetrier.recoverStaged(in: stagingRoot) }
@@ -254,7 +262,7 @@ enum ActiveSheet: Identifiable {
                 await log.append(AuditEntry(
                     date: manifest.created, action: .backUp, target: entry.source,
                     outcome: entry.verified ? .succeeded : .failed,
-                    detail: entry.verified ? "Copied and verified in \(manifest.folder)"
+                    detail: entry.verified ? "Copied and verified in \((manifest.folder as NSString).abbreviatingWithTildeInPath)"
                                            : "The copy didn't match the original"))
             }
             await refreshHistory()
@@ -305,8 +313,7 @@ enum ActiveSheet: Identifiable {
                 // Keyed to the finding, not the probe: a busy iCloud (probe waited, other files uploading) isn't stalled.
                 outcome = .skipped(reason: "iCloud isn't uploading right now. Restart iCloud Sync first.")
             } else if let item = itemsByPath[path], let rootURL = locations.roots[item.root] {
-                // `backups` is newest first, so this is the newest verified copy.
-                if let entry = backups.lazy.compactMap({ $0.verifiedEntry(for: path) }).first {
+                if let entry = verifiedBackup(for: path)?.verifiedEntry(for: path) {
                     outcome = await retrier.retry(item, rootURL: rootURL, backup: entry)
                     // Off the main actor: a package re-read walks up to 10,000 children.
                     let fresh = await Task.detached { [scanner] in
@@ -332,6 +339,13 @@ enum ActiveSheet: Identifiable {
                                         outcome: logged.outcome, detail: logged.detail))
         }
         await refreshHistory()
+    }
+
+    /// The newest backup with a verified copy of `path` outside iCloud: the copy Retry Upload uses, and what the
+    /// inspector and the Retry Upload sheet show. Path checks only, as views call it: UploadRetrier also asks macOS
+    /// (BackupService.isInsideICloud) right before it acts, off the main actor, since that can wait on fileproviderd.
+    func verifiedBackup(for path: String) -> BackupManifest? {
+        backups.first { $0.verifiedEntry(for: path).map { !locations.contains(URL(fileURLWithPath: $0.copy)) } ?? false }
     }
 
     /// Returns the logged entry, so the sheet can tell "restarted", "wasn't running" and "failed" apart.

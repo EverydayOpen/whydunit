@@ -12,7 +12,9 @@ Canonicals, og:image, the sitemap, the feed, robots.txt and llms.txt use the ful
   python tools/build_site.py --check   builds into temp dirs for baseURL, its bare origin and a /<releases repo>
                                        project path, then checks internal links (inside the path prefix), anchors,
                                        assets, meta tags, headings, alt text, XML, sitemap/feed/llms.txt URLs,
-                                       placeholders, text contrast and theme switches; exit 1 on any problem
+                                       placeholders, text contrast, theme switches, the CSP (no inline code),
+                                       rel="noopener noreferrer" on external links and size budgets; exit 1 on
+                                       any problem
 """
 import datetime
 import html
@@ -34,10 +36,9 @@ ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
 PLACEHOLDER = re.compile("REPLACE_ME|OWNER")
 # Body of /download/ until it can redirect (build()); check() still needs its one <h1>.
-SOON = ('<article class="wrap narrow prose center"><h1>Coming soon</h1><p>{{name}} 1.0 isn\'t available yet. The '
-        '<a href="/changelog/">changelog</a> and its <a href="/feed.xml">RSS feed</a> will say when it is.</p>'
-        '<p>Want to try it now? The <a href="https://github.com/{{releasesRepo}}/releases">unsigned beta</a> is on '
-        'GitHub. Right-click it and choose Open the first time.</p></article>\n')
+SOON = SITE / "src" / "soon.html"
+# layout.html's Content-Security-Policy must forbid inline code; check() enforces the markup that makes it hold.
+UNSAFE_CSP = re.compile(r"unsafe-|\*")
 
 
 class Raw(str):
@@ -87,11 +88,11 @@ def pages():
 
 def changelog_html(entries):
     if not entries:
-        return Raw('<p class="muted">No releases yet. Whydunit 1.0 is on its way.</p>')
+        return Raw('<p class="release muted">No releases yet. Whydunit 1.0 is on its way.</p>')
     out = []
     for e in entries:
         ver = html.escape(e["version"])
-        out.append(f'<section class="release" id="v{ver}"><h2>{ver} <time datetime="{e["date"]}">{pretty(e["date"])}</time></h2>'
+        out.append(f'<section class="release" id="v{ver}"><h2><span class="tag info">{ver}</span> <time datetime="{e["date"]}">{pretty(e["date"])}</time></h2>'
                    f'{changelog.to_html(e["body_md"])}</section>')
     return Raw("\n".join(out))
 
@@ -119,12 +120,16 @@ def build(out, site):
     entries = changelog.parse(str(log)) if log.exists() else []
     v = values(site)
     v["changelog"] = changelog_html(entries)
+    v["version"] = entries[0]["version"] if entries else "beta"   # the footer's mono version
     layout = (SITE / "src" / "layout.html").read_text(encoding="utf-8")
     prefix = urlsplit(site["baseURL"]).path   # "/whydunit-releases" on a project site, "" on a custom domain
 
     if out.exists():
         shutil.rmtree(out)
     shutil.copytree(SITE / "static", out)
+    css = out / "styles.css"   # its comments and indentation are for editors too (budget: check())
+    css.write_text(re.sub(r"/\*.*?\*/\n?|^[ \t]+", "", css.read_text(encoding="utf-8"), flags=re.S | re.M),
+                   encoding="utf-8", newline="\n")
     (out / ".nojekyll").write_text("")   # serve files as-is on GitHub Pages
     listed = []
     for rel, url, meta, body in pages():
@@ -138,16 +143,21 @@ def build(out, site):
             # download: show "Coming soon" instead of redirecting into a 404.
             if not PLACEHOLDER.search(target) and entries:
                 head.append(f'<meta http-equiv="refresh" content="0; url={html.escape(target)}">')
-                head.append(f"<script>location.replace({json.dumps(target)})</script>")
+                head.append('<script src="/redirect.js"></script>')   # the JS half (§9.2); a file, for the CSP
             else:
-                body = SOON
+                body = SOON.read_text(encoding="utf-8")
         else:
             listed += [(url, meta)] if not meta.get("noindex") else []
         page = dict(v, title=meta["title"], description=meta["description"], canonical=v["baseURL"] + url,
                     head=Raw("\n".join(head)), body=Raw(fill(body, v, rel)))
         dest = out / rel
         dest.parent.mkdir(parents=True, exist_ok=True)
-        text = re.sub(r'\b(href|src)="/(?!/)', rf'\1="{prefix}/', fill(layout, page, "layout.html"))
+        # srcset too: a <picture>'s <source> carries one URL (DESIGN.md §2.6).
+        text = re.sub(r'\b(href|src|srcset)="/(?!/)', rf'\1="{prefix}/', fill(layout, page, "layout.html"))
+        # External links (pages, layout and changelog notes alike) leak neither the opener nor the referrer.
+        text = re.sub(r'<a (?![^>]*\brel=)(?=[^>]*\bhref="https?://)', '<a rel="noopener noreferrer" ', text)
+        # Source comments and indentation are for editors, not visitors (no <pre> on the site). Budget: check().
+        text = re.sub(r"<!--.*?-->\n?|^[ \t]+", "", text, flags=re.S | re.M)
         dest.write_text(text, encoding="utf-8", newline="\n")
 
     (out / "feed.xml").write_text(feed(v, entries), encoding="utf-8", newline="\n")
@@ -168,6 +178,7 @@ class Page(HTMLParser):
     def __init__(self):
         super().__init__()
         self.links, self.ids, self.meta, self.title, self.h1, self.noalt = [], set(), {}, "", 0, 0
+        self.csp, self.inline, self.leaky = None, [], 0
         self._title = False
 
     def handle_starttag(self, tag, attrs):
@@ -175,6 +186,7 @@ class Page(HTMLParser):
         if "id" in a:
             self.ids.add(a["id"])
         self.links += [a[k] for k in ("href", "src") if a.get(k)]
+        self.links += [u.split()[0] for u in (a.get("srcset") or "").split(",") if u.strip()]
         if tag == "meta" and (a.get("name") or a.get("property")):
             self.meta[a.get("name") or a.get("property")] = a.get("content") or ""
         if tag == "link" and a.get("rel") == "canonical":
@@ -182,6 +194,14 @@ class Page(HTMLParser):
         self._title |= tag == "title"
         self.h1 += tag == "h1"
         self.noalt += tag == "img" and "alt" not in a
+        if tag == "meta" and (a.get("http-equiv") or "").lower() == "content-security-policy":
+            self.csp = a.get("content") or ""
+        # What the CSP blocks: <style>, style="", on*="" and <script> without src (JSON-LD is data, not code).
+        handlers = [k for k in a if k == "style" or k.startswith("on")]
+        if handlers or tag == "style" or tag == "script" and not a.get("src") and a.get("type") != "application/ld+json":
+            self.inline.append(" ".join([f"<{tag}>"] + handlers))
+        self.leaky += (tag == "a" and urlsplit(a.get("href") or "").scheme in ("http", "https")
+                       and not {"noopener", "noreferrer"} <= set((a.get("rel") or "").split()))
 
     def handle_endtag(self, tag):
         self._title &= tag != "title"
@@ -202,7 +222,8 @@ def contrast(css):
     blocks = re.findall(r":root\s*\{([^}]*)\}", css)   # light, then the dark override
     light, dark = (dict(re.findall(r"--([\w-]+):\s*(#[0-9a-fA-F]{6})\b", b)) for b in blocks)
     pairs = [(f, b) for f in ("text", "text-2", "accent") for b in ("bg", "bg-alt", "card")]
-    pairs += [("#ffffff", "button"), ("#ffffff", "button-hover")]   # .button, .skip, .steps numbers
+    on = "on-button" if "on-button" in light else "#ffffff"   # .button and .skip text (DESIGN.md §2.1)
+    pairs += [(on, "button"), (on, "button-hover"), ("#ffffff", "button")]   # the last: .steps numbers
     errors = []
     for scheme, t in (("light", light), ("dark", {**light, **dark})):
         for fg, bg in pairs:
@@ -251,6 +272,11 @@ def check(out, site, v):
             errors.append(f"{rel}: {p.h1} <h1> elements, want 1")
         if p.noalt:
             errors.append(f"{rel}: {p.noalt} <img> without alt")
+        if p.csp is None or "script-src 'self'" not in p.csp or UNSAFE_CSP.search(p.csp):
+            errors.append(f"{rel}: needs a Content-Security-Policy meta with script-src 'self' and nothing unsafe")
+        errors += [f"{rel}: inline code ({x}) is blocked by the CSP; move it to a static file" for x in p.inline]
+        if p.leaky:
+            errors.append(f'{rel}: {p.leaky} external links without rel="noopener noreferrer"')
         for link in p.links + [p.meta.get("og:image", "")]:
             resolve(rel, base + url, link)
     for f in sorted(out.rglob("*")):
@@ -275,6 +301,13 @@ def check(out, site, v):
         if PLACEHOLDER.search(str(val)) and key not in site.get("placeholders", []):
             errors.append(f"site.json: {key} is a placeholder but not listed in \"placeholders\"")
     errors += contrast((out / "styles.css").read_text(encoding="utf-8"))
+    # Budgets (docs/MOTION.md §6.1, docs/DESIGN.md §8): the site stays light.
+    caps = [("styles.css", 40_000), ("motion.js", 5_000), ("index.html", 36_000)]
+    caps += [(f.relative_to(out).as_posix(), 32_000) for f in out.glob("fonts/*.woff2")]
+    caps += [(f.relative_to(out).as_posix(), 110_000) for f in out.glob("shots/*")]
+    for name, cap in caps:
+        if (out / name).stat().st_size > cap:
+            errors.append(f"{name}: {(out / name).stat().st_size} bytes, over the {cap} byte budget")
     return errors, len(parsed)
 
 

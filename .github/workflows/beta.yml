@@ -1,6 +1,9 @@
 # Tag vX.Y.Z-beta.N -> unsigned (ad-hoc signed) universal build as a GitHub pre-release.
 # For testers before Developer ID signing exists: Gatekeeper blocks it until the user right-clicks › Open once.
-# Signed, notarized releases (plain vX.Y.Z tags) are release.yml's job.
+# Signed, notarized releases (plain vX.Y.Z tags) are release.yml's job. Retire this once Developer ID signing exists.
+#
+#   build    checkout, xcodegen, xcodebuild, smoke test, zip -> artifact. Read-only token, not kept in the checkout.
+#   publish  tags only: the zip -> GitHub pre-release. The only job with contents: write; no checkout, no build code.
 name: beta
 
 on:
@@ -9,31 +12,41 @@ on:
   workflow_dispatch:   # builds and uploads the zip as an artifact only; nothing is published
 
 permissions:
-  contents: write   # gh release create
+  contents: read
 
 env:
   APP: Whydunit
+  XCODEGEN: "2.46.0"   # checksum-pinned, same pin as release.yml and ci.yml: bump all three together
+  XCODEGEN_SHA256: 4d9e34b62172d645eed6457cac13fc222569974098ef4ee9c3368bedf0196806
 
 defaults:
   run:
     shell: bash
 
 jobs:
-  beta:
+  build:
     runs-on: macos-26
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Select Xcode 26
         run: sudo xcode-select -s /Applications/Xcode_26.6.app && xcodebuild -version
+
+      - name: Generate project (XcodeGen, checksum-pinned)
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/xcodegen.zip" "https://github.com/yonaskolb/XcodeGen/releases/download/$XCODEGEN/xcodegen.zip"
+          echo "$XCODEGEN_SHA256  $RUNNER_TEMP/xcodegen.zip" | shasum -a 256 -c
+          unzip -q "$RUNNER_TEMP/xcodegen.zip" -d "$RUNNER_TEMP"
+          test -d "$RUNNER_TEMP/xcodegen/share/xcodegen/SettingPresets"   # without them xcodegen only prints a warning
+          "$RUNNER_TEMP/xcodegen/bin/xcodegen" generate
 
       - name: Build (universal, ad-hoc signed)
         run: |
           VERSION="${GITHUB_REF_NAME#v}"; [[ "$GITHUB_REF_TYPE" == tag ]] || VERSION="0.0.0-dev"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-          brew install xcodegen
-          xcodegen generate
           # Hardened runtime off: with an ad-hoc signature, library validation would refuse the embedded Sparkle
           # framework and the app would die before its first line (buildmac.app lesson). Sparkle stays off anyway
           # while SUPublicEDKey is a placeholder (App/Updater.swift).
@@ -60,16 +73,30 @@ jobs:
       - name: Zip
         run: ditto -c -k --keepParent "build/out/$APP.app" "build/$APP-$VERSION.zip"
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ env.APP }}-${{ env.VERSION }}
           path: build/${{ env.APP }}-${{ env.VERSION }}.zip
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    if: github.event_name == 'push'   # a beta tag; a manual run publishes nothing, even from a tag
+    runs-on: ubuntu-latest   # only gh runs here
+    timeout-minutes: 10
+    permissions:
+      contents: write   # gh release create
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          path: build
+          merge-multiple: true   # the run's one artifact, straight into build/
 
       - name: Publish pre-release
-        if: github.ref_type == 'tag'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          VERSION="${GITHUB_REF_NAME#v}"
           cat > build/notes.md <<EOF
           **Unsigned beta.** Whydunit isn't signed with an Apple Developer ID yet, so macOS blocks the first launch.
 
@@ -80,5 +107,5 @@ jobs:
           Requires macOS 15 or later, Apple silicon or Intel. This beta doesn't update itself; download new betas from
           this page. Please report problems in [Issues](https://github.com/$GITHUB_REPOSITORY/issues).
           EOF
-          gh release create "$GITHUB_REF_NAME" "build/$APP-$VERSION.zip" --prerelease \
+          gh release create "$GITHUB_REF_NAME" "build/$APP-$VERSION.zip" --prerelease --verify-tag -R "$GITHUB_REPOSITORY" \
             --title "$APP $VERSION (unsigned beta)" --notes-file build/notes.md

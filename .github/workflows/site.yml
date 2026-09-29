@@ -1,13 +1,14 @@
-# Build the website and deploy it to the public releases repo's gh-pages branch (docs/BUILD_PLAN.md §10.2).
+# Build the website and deploy it to this repo's gh-pages branch (docs/BUILD_PLAN.md §10.2).
 # release.yml owns appcast.xml there, and CNAME exists only if you add a custom domain: the deploy never deletes or
 # overwrites either.
 #
-# Enabling GitHub Pages (once): in the releases repo, Settings › Pages › Build and deployment › Source "Deploy from a
-# branch", branch gh-pages, folder / (root). The site is then https://OWNER.github.io/whydunit-releases/, which must
+# Enabling GitHub Pages (once): in this repo, Settings › Pages › Build and deployment › Source "Deploy from a
+# branch", branch gh-pages, folder / (root). The site is then https://<owner>.github.io/whydunit/, which must
 # equal site/site.json baseURL. A custom domain is optional: set it there too and change baseURL to match.
 #
-# Secret RELEASES_REPO_TOKEN (the same fine-grained PAT as release.yml) in a "site" environment whose deployment
-# branch is main: the "release" environment only admits v* tags. Variable RELEASES_REPO as for release.yml.
+# Deploys to this repo's gh-pages with github.token. Only for a separate releases repo (variable RELEASES_REPO, as for
+# release.yml): secret RELEASES_REPO_TOKEN (the same fine-grained PAT) in a "site" environment whose deployment branch
+# is main only; the "release" environment only admits v* tags.
 name: site
 
 on:
@@ -35,7 +36,7 @@ jobs:
     env:
       RELEASES_REPO: ${{ vars.RELEASES_REPO || github.repository }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 

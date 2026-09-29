@@ -1,81 +1,105 @@
 <!--meta {"title": "Whydunit: fix iCloud Drive files stuck on Waiting to Upload", "description": "A Mac app that finds iCloud Drive files that won't upload, explains why in plain English and fixes them safely, with verified backups first. Free, with no account and no subscription."}-->
 <script type="application/ld+json">{{softwareJSON}}</script>
-<svg class="sprite" aria-hidden="true" focusable="false">
-  <symbol id="i-warn" viewBox="0 0 24 24"><path fill="#ff9f0a" d="M10.3 3.4a2 2 0 0 1 3.4 0l8.6 15a2 2 0 0 1-1.7 3H3.4a2 2 0 0 1-1.7-3z"/><path fill="#fff" d="M11 8.5h2l-.3 6.5h-1.4zM12 16.3a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4z"/></symbol>
-  <symbol id="i-cloud" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" d="M7.2 18.5h10.3a4 4 0 0 0 .5-8A6 6 0 0 0 6.5 9.3a4.6 4.6 0 0 0 .7 9.2z"/></symbol>
-  <symbol id="i-clock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4.6 9A8 8 0 1 1 4 12"/><path d="M4 5v4h4M12 8v4l3 2"/></g></symbol>
-  <symbol id="i-list" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M8 9.5h8M8 12.5h8M8 15.5h5"/></g></symbol>
-  <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
-</svg>
 
-<section class="hero">
-  <div class="wrap narrow center">
-    <img class="hero-icon" src="/icon.png" width="128" height="128" alt="Whydunit app icon">
-    <h1>{{name}}</h1>
-    <p class="promise">{{tagline}}</p>
-    <p class="actions"><a class="button" href="/download/">Download free</a></p>
-    <p class="small muted">Free · Requires macOS {{minMacOS}} or later · Apple silicon and Intel</p>
+<section class="hero" aria-labelledby="hero-h">
+  <div class="wrap center">
+    <p class="kicker"><svg aria-hidden="true"><use href="#i-cloud"/></svg>For iCloud Drive on macOS {{minMacOS}} or later</p>
+    <h1 id="hero-h">See why your files won't upload. <span class="dim">Fix them without losing a thing.</span></h1>
+    <p class="lede">Whydunit finds iCloud Drive files that are stuck, explains why in plain English, and backs them up before it changes anything.</p>
+    <p class="actions">
+      <a class="button" href="/download/"><svg aria-hidden="true"><use href="#i-down"/></svg><span class="sep" aria-hidden="true"></span>Download free</a>
+      <a class="button secondary" href="https://github.com/{{releasesRepo}}">View source</a>
+    </p>
+    <p class="facts">Free · No account · macOS {{minMacOS}} or later · Apple silicon and Intel</p>
   </div>
-
-  <div class="wrap">
-    <!-- ILLUSTRATION: CSS drawing of the app window (BUILD_PLAN §6 layout). Replace with a real screenshot once the app runs on a Mac. -->
-    <figure class="window" role="img" aria-label="Illustration with sample data. The Whydunit window. The sidebar lists Summary, Only on This Mac and Stuck Uploads. The summary says: 14 items (1.3 GB) exist only on this Mac.">
-      <div class="win-bar">
-        <span class="lights"><i></i><i></i><i></i></span>
-        <span class="win-title"><b>Summary</b> <span>Scanned 2 minutes ago</span></span>
-      </div>
-      <div class="win-body">
-        <div class="win-side">
-          <p class="side-head">iCloud Drive</p>
-          <p class="side-row selected"><svg><use href="#i-cloud"/></svg>Summary</p>
-          <p class="side-row"><svg><use href="#i-warn"/></svg>Only on This Mac<span class="badge">14</span></p>
-          <p class="side-row"><svg><use href="#i-warn"/></svg>Stuck Uploads<span class="badge">12</span></p>
-          <p class="side-head">History</p>
-          <p class="side-row"><svg><use href="#i-clock"/></svg>Backups</p>
-          <p class="side-row"><svg><use href="#i-list"/></svg>Activity</p>
-        </div>
-        <div class="win-main">
-          <div class="group">
-            <div class="win-hero">
-              <svg><use href="#i-warn"/></svg>
-              <div>
-                <p class="win-h">14 items (1.3 GB) exist only on this Mac</p>
-                <p class="win-meta">4,213 items checked · 2 need attention</p>
+  <div class="wide">
+    <!-- The diorama (docs/DESIGN.md §4.3): wallpaper, Finder behind (Z -120), the app (Z 0), a banner in front (Z +110). Copy from App/Demo.swift. -->
+    <div class="stage daylight" data-tilt>
+      <p class="menubar" aria-hidden="true"><b>Whydunit</b><span>File</span><span>Edit</span><span>View</span><span>Window</span><span>Help</span><time>Tue 9:41</time></p>
+      <div class="scene">
+        <figure class="finder" aria-hidden="true">
+          <p class="f-bar"><span class="lights"><i></i><i></i><i></i></span><svg><use href="#i-back"/></svg><b>iCloud Drive</b></p>
+          <p class="f-row"><svg><use href="#i-doc"/></svg><span>Taxes 2025.numbers</span><em><svg><use href="#i-cloud"/></svg>Waiting to Upload</em></p>
+          <p class="f-row"><svg><use href="#i-doc"/></svg><span>Budget 2026.numbers</span><em><svg><use href="#i-cloud"/></svg>Waiting to Upload</em></p>
+          <p class="f-row"><svg><use href="#i-doc"/></svg><span>Q3 Review.key</span><em><svg><use href="#i-cloud"/></svg>Waiting to Upload</em></p>
+          <p class="f-row"><svg><use href="#i-doc"/></svg><span>Client Brief.pages</span><em><svg><use href="#i-cloud"/></svg>Waiting to Upload</em></p>
+          <p class="f-row"><svg><use href="#i-doc"/></svg><span>Summer Edit.mov</span><em><svg><use href="#i-cloud"/></svg>Waiting to Upload</em></p>
+        </figure>
+        <figure class="window" role="img" aria-label="Illustration with sample data. The Whydunit window. The sidebar lists Summary and six findings, from Only on This Mac to Not Synced by Design. The summary says: 10 items (2.1 GB) exist only on this Mac. 4,213 items checked, 4 need attention.">
+          <div class="win-side">
+            <p class="lights"><i></i><i></i><i></i></p>
+            <p class="side-head">iCloud Drive</p>
+            <p class="side-row sel"><svg><use href="#i-cloud-fill"/></svg>Summary</p>
+            <p class="side-row warn"><svg><use href="#i-laptop"/></svg>Only on This Mac<i>10</i></p>
+            <p class="side-row warn"><svg><use href="#i-cloud-bang"/></svg>Upload Errors<i>2</i></p>
+            <p class="side-row warn"><svg><use href="#i-upload"/></svg>Stuck Uploads<i>7</i></p>
+            <p class="side-row warn"><svg><use href="#i-docs"/></svg>Conflicts<i>1</i></p>
+            <p class="side-row"><svg><use href="#i-folder-q"/></svg>Moved Files<i>1</i></p>
+            <p class="side-row"><svg><use href="#i-minus"/></svg>Not Synced by Design<i>1</i></p>
+            <p class="side-head">History</p>
+            <p class="side-row"><svg><use href="#i-clock"/></svg>Backups</p>
+            <p class="side-row"><svg><use href="#i-list"/></svg>Activity</p>
+          </div>
+          <div class="win-main">
+            <div class="win-bar"><p class="win-title"><b>Summary</b><span>Scanned 2 minutes ago</span></p><p class="win-tools"><svg><use href="#i-restart"/></svg><svg><use href="#i-panel"/></svg></p></div>
+            <div class="plate">
+              <div class="plate-top">
+                <span class="sev"><svg><use href="#i-tri"/></svg></span>
+                <p><b>10 items (2.1 GB) exist only on this Mac</b><span>4,213 items checked · 4 need attention</span></p>
+                <span class="fake">Copy Diagnosis</span>
               </div>
+              <p class="metrics"><span><small>Checked</small>4,213</span><span><small>Need attention</small><i></i>4</span><span><small>Only on this Mac</small>2.1<em>GB</em></span></p>
+            </div>
+            <p class="win-label">Needs attention</p>
+            <div class="list">
+              <p class="row"><span class="w warn"><svg><use href="#i-laptop"/></svg></span><span class="rt"><b>10 items (2.1 GB) exist only on this Mac</b><span>iCloud hasn't confirmed it has a copy of these items, so this Mac may hold the only one. Signing out, turning off iCloud Drive or resetting sync now could lose them.</span></span><span class="tag warn">10</span><i>›</i></p>
+              <p class="row"><span class="w warn"><svg><use href="#i-cloud-bang"/></svg></span><span class="rt"><b>2 items couldn't upload: name already in use (812 KB)</b><span>macOS reported an upload error for these items, so iCloud doesn't have their latest version. They're still on this Mac. The exact error is in the technical details.</span></span><span class="tag warn">2</span><i>›</i></p>
+              <p class="row"><span class="w warn"><svg><use href="#i-upload"/></svg></span><span class="rt"><b>7 files haven't uploaded to iCloud (2.1 GB)</b><span>A test file uploaded normally, so iCloud is working, but these files haven't uploaded in over 2 hours and macOS reports no error. They're still safe on this Mac.</span></span><span class="tag warn">7</span><i>›</i></p>
+              <p class="row"><span class="w warn"><svg><use href="#i-docs"/></svg></span><span class="rt"><b>1 item has conflicting versions</b><span>This item was changed on more than one device before syncing, so iCloud kept more than one version. When you pick the version to keep, the others are deleted everywhere.</span></span><span class="tag warn">1</span><i>›</i></p>
+            </div>
+            <p class="win-label">Good to know</p>
+            <div class="list">
+              <p class="row"><span class="w"><svg><use href="#i-folder-q"/></svg></span><span class="rt"><b>A folder may hold files moved by macOS</b><span>macOS moves files into folders like “iCloud Drive (Archive)” or “Relocated Items” when iCloud Drive is turned off, Desktop &amp; Documents syncing changes, or an update runs.</span></span><span class="tag">1</span><i>›</i></p>
+              <p class="row"><span class="w"><svg><use href="#i-minus"/></svg></span><span class="rt"><b>1 item isn't synced by design (820 MB)</b><span>iCloud Drive never syncs names ending in .nosync or .tmp, or a few special folders such as photo libraries. This item stays on this Mac on purpose and isn't stuck.</span></span><span class="tag">1</span><i>›</i></p>
             </div>
           </div>
-          <p class="group-head">Findings</p>
-          <div class="group">
-            <div class="win-row"><svg><use href="#i-warn"/></svg><span><b>14 items (1.3 GB) exist only on this Mac</b><span>iCloud hasn't confirmed it has a copy of these items, so this Mac may hold the only one.</span></span><i>›</i></div>
-            <div class="win-row"><svg><use href="#i-warn"/></svg><span><b>12 files haven't uploaded to iCloud (1.2 GB)</b><span>A test file uploaded normally, so iCloud is working, but these files haven't.</span></span><i>›</i></div>
-          </div>
-          <p class="group-head">iCloud Drive</p>
-          <div class="group">
-            <div class="win-row kv"><span>Sync check</span><span>Working: a test file uploaded in 8 seconds</span></div>
-            <div class="win-row kv"><span>Free on this Mac</span><span>86.4 GB</span></div>
-          </div>
-        </div>
+        </figure>
+        <p class="note" aria-hidden="true"><img src="/icon.png" width="32" height="32" alt=""><b>Whydunit</b><time>now</time><span>10 copies verified with SHA-256</span></p>
       </div>
-    </figure>
-    <p class="small muted center">Illustration with sample data</p>
+    </div>
+    <p class="caption">Illustration with sample data</p>
   </div>
 </section>
 
-<section class="band" aria-labelledby="problem-h">
+<section class="proof-sec" aria-label="Whydunit in four facts">
   <div class="wrap">
-    <h2 id="problem-h" class="center">Sound familiar?</h2>
-    <div class="grid three">
-      <div class="card">
-        <h3>“It has said Waiting to Upload for days.”</h3>
-        <p>The little cloud never clears, the count never reaches zero, and nothing tells you why.</p>
+    <dl class="proof reveal">
+      <div><dt>of file contents read during a scan</dt><dd>0 bytes</dd></div>
+      <div><dt>on every backup copy</dt><dd>SHA-256</dd></div>
+      <div><dt>retries, each re-checked first</dt><dd>1 at a time</dd></div>
+      <div><dt>it talks to: its update feed</dt><dd>1 server</dd></div>
+    </dl>
+  </div>
+</section>
+
+<section aria-labelledby="pair-h">
+  <div class="wrap split">
+    <div>
+      <p class="eyebrow">Sound familiar?</p>
+      <h2 id="pair-h">Finder shows a status. <span class="dim">Whydunit tells you why.</span></h2>
+      <p class="lede">The little cloud never clears, the count never reaches zero, and nothing tells you why. You can't tell what has reached iCloud, so you don't dare sign out, reset or switch anything off.</p>
+    </div>
+    <div class="pair">
+      <div class="claim" aria-label="Finder says">
+        <p class="f-bar"><span class="lights" aria-hidden="true"><i></i><i></i><i></i></span><b>Finder says</b></p>
+        <p class="f-row"><svg aria-hidden="true"><use href="#i-doc"/></svg><span>Q3 Review.key</span><em><svg aria-hidden="true"><use href="#i-cloud"/></svg>Waiting to Upload</em></p>
+        <p class="f-row" aria-hidden="true"><svg><use href="#i-doc"/></svg><span>Client Brief.pages</span><em><svg><use href="#i-cloud"/></svg>Waiting to Upload</em></p>
       </div>
-      <div class="card">
-        <h3>“Are these files only on this Mac?”</h3>
-        <p>You can't tell what has reached iCloud, so you don't dare sign out, reset or switch anything off.</p>
-      </div>
-      <div class="card">
-        <h3>“Sync just stopped.”</h3>
-        <p>Nothing uploads, nothing shows an error, and advice online says to delete folders you've never heard of.</p>
+      <div class="finding card reveal" data-tilt>
+        <p class="said">Whydunit says <span class="tag warn">Stuck Uploads</span></p>
+        <p class="find-h">7 files haven't uploaded to iCloud (2.1 GB)</p>
+        <p>A test file uploaded normally, so iCloud is working, but these files haven't uploaded in over 2 hours and macOS reports no error. They're still safe on this Mac.</p>
+        <p class="caps" aria-hidden="true"><span>Back Up…</span><span>Retry Upload…</span></p>
       </div>
     </div>
   </div>
@@ -83,125 +107,174 @@
 
 <section id="how" aria-labelledby="how-h">
   <div class="wrap">
-    <h2 id="how-h" class="center">How it works</h2>
-    <p class="lede center">Four calm steps. You stay in charge of every change.</p>
+    <div class="sec-head">
+      <div><p class="eyebrow">How it works</p><h2 id="how-h">Four calm steps.</h2></div>
+      <p class="lede">You stay in charge of every change.</p>
+    </div>
     <ol class="steps">
-      <li>
+      <li class="reveal">
         <h3>Scan</h3>
-        <p>Whydunit reads the sync status of your files in iCloud Drive, plus Desktop and Documents if they sync (app folders such as Pages and Numbers aren't checked yet). It downloads nothing, and checks that sync works by uploading one small test file.</p>
+        <p>Reads the sync status of your files in iCloud Drive, plus Desktop and Documents when they sync. It downloads nothing.</p>
       </li>
-      <li>
+      <li class="reveal">
         <h3>Plain-English diagnosis</h3>
-        <p>Each problem gets a name, what it means and what to do next: iCloud storage full, a file too big for iCloud, sync stalled for the whole Mac, files that exist only on this Mac, and more.</p>
+        <p>Each finding gets a name, what it means and what to do next.</p>
       </li>
-      <li>
+      <li class="reveal">
         <h3>Verified backup</h3>
-        <p>Before Retry Upload moves a file, it needs a verified backup of that exact file. Back Up copies it to a Whydunit Backups folder outside iCloud and checks every copy against the original with SHA-256.</p>
+        <p>Back Up copies the file to a Whydunit Backups folder outside iCloud and checks it with SHA-256.</p>
       </li>
-      <li>
+      <li class="reveal">
         <h3>Safe retry</h3>
-        <p>Stuck files are moved out of iCloud Drive and back, one at a time. If sync has stalled for the whole Mac, Whydunit can restart iCloud's sync process, with your OK.</p>
+        <p>Moves a stuck file out of iCloud Drive and back, one at a time, only after a verified backup.</p>
       </li>
     </ol>
   </div>
 </section>
 
-<section id="safety" class="band" aria-labelledby="safety-h">
+<section id="fixes" aria-labelledby="fixes-h">
   <div class="wrap">
-    <h2 id="safety-h" class="center">Built to never lose a file</h2>
-    <p class="lede center">Whydunit never signs you out, never changes your iCloud settings and never touches iCloud's own system folders.</p>
-    <div class="grid three">
-      <div class="card">
-        <h3>Reads status, not contents</h3>
-        <p>A scan looks at each file's sync status. It never opens your files and never downloads the ones stored only in iCloud.</p>
-      </div>
-      <div class="card">
-        <h3>Copies and checks first</h3>
-        <p>Retry Upload won't touch a file until a verified backup of that exact file exists. Every copy is checked with SHA-256.</p>
-      </div>
-      <div class="card">
-        <h3>Trash, never delete</h3>
-        <p>Whydunit has no delete feature. What it clears away, like its own test file or a backup you remove, goes to the Trash. It never empties the Trash.</p>
-      </div>
-      <div class="card">
-        <h3>An activity log</h3>
-        <p>Every backup, retry and restart is written to a log you can read in the app, with what happened and when.</p>
-      </div>
-      <div class="card">
-        <h3>Runs fully on your Mac</h3>
-        <p>No account and no cloud service of ours. Your file names and contents never leave your Mac.</p>
-      </div>
-      <div class="card">
-        <h3>No telemetry</h3>
-        <p>No analytics, no crash-reporting service, no tracking. Apart from its test upload to your own iCloud Drive, the app only goes online to look for updates.</p>
-      </div>
+    <div class="sec-head">
+      <div><p class="eyebrow">The fixes</p><h2 id="fixes-h">Three fixes. Each one safe.</h2></div>
+      <p class="lede">Each one shows what it will do before it does it, and every change goes into the activity log.</p>
+    </div>
+    <div class="stack">
+      <article class="feature">
+        <div class="media">
+          <div class="sheet" role="img" aria-label="Illustration with sample data. The Back Up sheet: 4 items backed up and verified, each copy checked with SHA-256.">
+            <div class="sheet-head"><svg class="seal"><use href="#i-seal"/></svg><p><b>4 items backed up and verified</b><span>The copies are in “~/Whydunit Backups”. Nothing in iCloud Drive was changed.</span></p></div>
+            <ul class="rows">
+              <li><svg><use href="#i-doc"/></svg><span>Taxes 2025.numbers</span><i>2.5 MB</i><span class="tag ok">Verified</span></li>
+              <li><svg><use href="#i-doc"/></svg><span>Budget 2026.numbers</span><i>2 MB</i><span class="tag ok">Verified</span></li>
+              <li><svg><use href="#i-doc"/></svg><span>Q3 Review.key</span><i>184 MB</i><span class="tag ok">Verified</span></li>
+              <li><svg><use href="#i-doc"/></svg><span>Client Brief.pages</span><i>12.6 MB</i><span class="tag ok">Verified</span></li>
+            </ul>
+            <p class="foot"><span class="tag ok">SHA-256</span><span class="fake">Show Backup in Finder</span><span class="fake primary">Done</span></p>
+          </div>
+        </div>
+        <div class="text">
+          <p class="index">01</p>
+          <h3>Back Up</h3>
+          <p>Copies the files you choose to a visible Whydunit Backups folder outside iCloud, and checks every copy against the original with SHA-256.</p>
+          <p class="promise">Stops at the first SHA-256 mismatch</p>
+        </div>
+      </article>
+      <article class="feature">
+        <div class="media">
+          <div class="sheet" role="img" aria-label="Illustration with sample data. The Retry Upload sheet: 2 of 3 items uploaded, 1 still waiting, its backup kept.">
+            <div class="sheet-head"><span class="well"><svg><use href="#i-upload"/></svg></span><p><b>2 of 3 items uploaded</b><span>Each item was moved out of iCloud Drive and back, one at a time.</span></p></div>
+            <ul class="rows">
+              <li><svg><use href="#i-doc"/></svg><span>Q3 Review.key</span><span class="tag ok">Uploaded</span></li>
+              <li><svg><use href="#i-doc"/></svg><span>Client Brief.pages</span><span class="tag ok">Uploaded</span></li>
+              <li><svg><use href="#i-doc"/></svg><span>Summer Edit.mov</span><span class="tag warn">Still waiting</span></li>
+            </ul>
+            <p class="hint">Items still waiting may finish uploading on their own. Their backups are kept.</p>
+            <p class="foot"><span class="fake primary">Done</span></p>
+          </div>
+        </div>
+        <div class="text">
+          <p class="index">02</p>
+          <h3>Retry Upload</h3>
+          <p>Moves a stuck file out of iCloud Drive and back, so iCloud picks it up again. It runs only after a verified backup of that exact file exists, and checks the file again right before it acts.</p>
+          <p class="promise">One item at a time, backup first</p>
+        </div>
+      </article>
+      <article class="feature">
+        <div class="media">
+          <div class="sheet" role="img" aria-label="Illustration with sample data. The Restart iCloud Sync sheet asks for your OK before restarting the iCloud sync process.">
+            <div class="sheet-head"><span class="well"><svg><use href="#i-restart"/></svg></span><p><b>Restart iCloud Sync</b><span>This restarts your Mac's iCloud sync process (bird). macOS starts it again automatically. Nothing is deleted and no files are moved.</span></p></div>
+            <p class="hint">Afterwards, wait a few minutes, then scan again.</p>
+            <p class="foot"><span class="fake">Cancel</span><span class="fake primary">Restart iCloud Sync</span></p>
+          </div>
+        </div>
+        <div class="text">
+          <p class="index">03</p>
+          <h3>Restart iCloud Sync</h3>
+          <p>When sync has stalled for the whole Mac, Whydunit restarts your own iCloud sync process, once. It never signs you out or changes your iCloud settings.</p>
+          <p class="promise">Only after you say yes</p>
+        </div>
+      </article>
     </div>
   </div>
 </section>
 
-<section id="free" aria-labelledby="free-h">
-  <div class="wrap narrow">
-    <h2 id="free-h" class="center">Free. No account, no subscription, no catch.</h2>
-    <p class="lede center">Every feature, on as many Macs as you like, with every update.</p>
-    <div class="card">
-      <ul class="checks" role="list">
-        <li><svg aria-hidden="true"><use href="#i-check"/></svg>Scan of iCloud Drive, plus Desktop and Documents if they sync to iCloud</li>
-        <li><svg aria-hidden="true"><use href="#i-check"/></svg>Every finding, with what it means and what to do</li>
-        <li><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>Back Up</b>: verified copies of files that exist only on this Mac</span></li>
-        <li><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>Retry Upload</b>: stuck files moved out of iCloud Drive and back, one at a time</span></li>
-        <li><svg aria-hidden="true"><use href="#i-check"/></svg><span><b>Restart iCloud Sync</b>: when sync has stalled for the whole Mac, with your OK</span></li>
-        <li><svg aria-hidden="true"><use href="#i-check"/></svg>Copy Diagnosis, to send to Apple Support, and a CSV list of the affected files</li>
-      </ul>
+<section id="safety" aria-labelledby="safety-h">
+  <div class="wrap cols">
+    <div class="side">
+      <p class="eyebrow">Safety</p>
+      <h2 id="safety-h">Built to never lose a file.</h2>
+      <p class="lede">Whydunit never signs you out, never changes your iCloud settings and never touches iCloud's own system folders. Every change is logged.</p>
+      <div class="receipt">
+        <p class="label">Checked on every code change</p>
+        <p>CI fails any build whose code calls <code>removeItem</code>, <code>unlink</code>, <code>rmdir</code> or <code>/bin/rm</code>, or starts a shell.</p>
+      </div>
+    </div>
+    <ul class="rules">
+      <li><h3>Trash, never delete</h3><p>Whydunit has no delete feature. What it clears away, like its own test file or a backup you remove, goes to the Trash. It never empties the Trash.</p><code>trashItem</code></li>
+      <li><h3>Reads status, not contents</h3><p>A scan looks at each file's sync status. It never opens your files and never downloads the ones stored only in iCloud.</p><code>read-only</code></li>
+      <li><h3>Copies and checks first</h3><p>Retry Upload won't touch a file until a verified backup of that exact file exists. Every copy is checked with SHA-256.</p><code>SHA-256</code></li>
+      <li><h3>Runs fully on your Mac</h3><p>No account and no cloud service of ours. Your file names and contents never leave your Mac.</p><code>1 feed</code></li>
+      <li><h3>An activity log</h3><p>Every backup, retry and restart is written to a log you can read in the app, with what happened and when.</p><code>activity log</code></li>
+      <li><h3>No telemetry</h3><p>No analytics, no crash-reporting service, no tracking. Apart from its test upload to your own iCloud Drive, the app only goes online to look for updates.</p><code>no telemetry</code></li>
+    </ul>
+  </div>
+</section>
+
+<section id="faq" aria-labelledby="faq-h">
+  <div class="wrap cols">
+    <div class="side">
+      <p class="eyebrow">FAQ</p>
+      <h2 id="faq-h">Questions. <span class="dim">Straight answers.</span></h2>
+      <p class="lede">Something else? Ask on <a href="{{issuesURL}}">GitHub Issues</a> or read the <a href="/support/">support page</a>.</p>
+    </div>
+    <div class="faq-list">
+      <details>
+        <summary>Will Whydunit delete my files?</summary>
+        <p>No. Whydunit has no delete feature, and an automated check on every code change rejects code that calls the system's permanent-delete functions. A scan only reads sync status. Retry Upload moves a file out of iCloud Drive and straight back, and only after a verified backup of that file exists. The only things Whydunit moves to the Trash are its own test file and folder, and backups you choose to remove.</p>
+      </details>
+      <details>
+        <summary>Is it really free?</summary>
+        <p>Yes. Every feature, on as many Macs as you like, with every update. There are no ads, no in-app purchases, no subscription and no account.</p>
+      </details>
+      <details>
+        <summary>Does it need Full Disk Access?</summary>
+        <p>Usually not. macOS may ask you to allow access to iCloud Drive, and to Desktop and Documents if they sync to iCloud. You can change this any time in System Settings › Privacy &amp; Security › Files &amp; Folders. If Whydunit isn't listed under Files &amp; Folders, the app will show you how to add it under Full Disk Access instead.</p>
+      </details>
+      <details>
+        <summary>Is my data sent anywhere?</summary>
+        <p>Your file names and contents never leave your Mac. The app goes online for two things only: looking for updates, and the sync check, which uploads one small file of random bytes to your own iCloud Drive and then moves it to the Trash. The <a href="/privacy/">privacy policy</a> lists exactly what is sent.</p>
+      </details>
+      <details>
+        <summary>What if I'm offline?</summary>
+        <p>The scan and diagnosis work offline, though iCloud can't upload anything without a connection, and the sync check will tell you so. Whydunit needs no account.</p>
+      </details>
+      <details>
+        <summary>Does it work on Intel Macs?</summary>
+        <p>Yes. Whydunit is a universal app for Apple silicon and Intel Macs running macOS {{minMacOS}} or later.</p>
+      </details>
+      <details>
+        <summary>Can it fix every iCloud problem?</summary>
+        <p>No, and it will tell you so. Some problems are on Apple's side, such as an iCloud outage or an account problem, and nothing on your Mac can fix those. When that looks likely, Whydunit says so and gives you a diagnosis to send to Apple Support. App folders in iCloud Drive, such as those of Pages and Numbers, aren't checked yet.</p>
+      </details>
+      <details>
+        <summary>Something isn't working. Where do I get help?</summary>
+        <p>Report it on <a href="{{issuesURL}}">GitHub Issues</a>, with a copied diagnosis if you can. The <a href="/support/">support page</a> shows how.</p>
+      </details>
+      <details>
+        <summary>Is it on the Mac App Store?</summary>
+        <p>No. Whydunit needs to restart iCloud's sync process and read sync status across iCloud Drive, which the App Store's sandbox doesn't allow. It is signed with an Apple Developer ID, notarized by Apple, and updates itself.</p>
+      </details>
     </div>
   </div>
 </section>
 
-<section id="faq" class="band" aria-labelledby="faq-h">
-  <div class="wrap narrow">
-    <h2 id="faq-h" class="center">Questions</h2>
-    <details>
-      <summary>Will Whydunit delete my files?</summary>
-      <p>No. Whydunit has no delete feature, and an automated check on every code change rejects code that calls the system's permanent-delete functions. A scan only reads sync status. Retry Upload moves a file out of iCloud Drive and straight back, and only after a verified backup of that file exists. The only things Whydunit moves to the Trash are its own test file and folder, and backups you choose to remove.</p>
-    </details>
-    <details>
-      <summary>Does it need Full Disk Access?</summary>
-      <p>Usually not. macOS may ask you to allow access to iCloud Drive, and to Desktop and Documents if they sync to iCloud. You can change this any time in System Settings › Privacy &amp; Security › Files &amp; Folders. If Whydunit isn't listed under Files &amp; Folders, the app will show you how to add it under Full Disk Access instead.</p>
-    </details>
-    <details>
-      <summary>Is my data sent anywhere?</summary>
-      <p>Your file names and contents never leave your Mac. The app goes online for two things only: looking for updates, and the sync check, which uploads one small file of random bytes to your own iCloud Drive and then moves it to the Trash. The <a href="/privacy/">privacy policy</a> lists exactly what is sent.</p>
-    </details>
-    <details>
-      <summary>What if I'm offline?</summary>
-      <p>The scan and diagnosis work offline, though iCloud can't upload anything without a connection, and the sync check will tell you so. Whydunit needs no account.</p>
-    </details>
-    <details>
-      <summary>Does it work on Intel Macs?</summary>
-      <p>Yes. Whydunit is a universal app for Apple silicon and Intel Macs running macOS {{minMacOS}} or later.</p>
-    </details>
-    <details>
-      <summary>Can it fix every iCloud problem?</summary>
-      <p>No, and it will tell you so. Some problems are on Apple's side, such as an iCloud outage or an account problem, and nothing on your Mac can fix those. When that looks likely, Whydunit says so and gives you a diagnosis to send to Apple Support.</p>
-    </details>
-    <details>
-      <summary>Is it really free?</summary>
-      <p>Yes. Every feature, on as many Macs as you like, with every update. There are no ads, no in-app purchases, no subscription and no account.</p>
-    </details>
-    <details>
-      <summary>Something isn't working. Where do I get help?</summary>
-      <p>Report it on <a href="{{issuesURL}}">GitHub Issues</a>, with a copied diagnosis if you can. The <a href="/support/">support page</a> shows how.</p>
-    </details>
-    <details>
-      <summary>Is it on the Mac App Store?</summary>
-      <p>No. Whydunit needs to restart iCloud's sync process and read sync status across iCloud Drive, which the App Store's sandbox doesn't allow. It is signed with an Apple Developer ID, notarized by Apple, and updates itself.</p>
-    </details>
-  </div>
-</section>
-
-<section class="cta" aria-labelledby="cta-h">
-  <div class="wrap narrow center">
-    <h2 id="cta-h">See what's stuck. It's free.</h2>
-    <p class="actions"><a class="button" href="/download/">Download free</a></p>
-    <p class="small muted">Requires macOS {{minMacOS}} or later</p>
+<section class="finale" aria-labelledby="cta-h">
+  <div class="wrap">
+    <div class="panel">
+      <img class="icon" src="/icon.png" width="128" height="128" alt="" loading="lazy" decoding="async" data-tilt>
+      <h2 id="cta-h">See what's stuck. <span class="dim">It's free.</span></h2>
+      <p class="actions"><a class="button" href="/download/"><svg aria-hidden="true"><use href="#i-down"/></svg><span class="sep" aria-hidden="true"></span>Download free</a></p>
+      <p class="facts">macOS {{minMacOS}} or later · Apple silicon and Intel · No account</p>
+    </div>
   </div>
 </section>

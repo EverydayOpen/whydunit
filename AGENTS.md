@@ -10,9 +10,10 @@ Read [docs/BUILD_PLAN.md](docs/BUILD_PLAN.md) first. It is authoritative and ove
 
 ## Be honest about what has run
 
-- Only `WhydunitCore` has been compiled and tested (Linux, in Docker). `WhydunitMac`, `App/` and the release
-  workflow have never been compiled or run. **Never claim Mac or App code compiles, builds or works unless a CI run
-  shows it.** Say "written, not compiled".
+- CI (`ci.yml` on `macos-26`, plus a non-blocking Xcode 27 job) compiles `WhydunitMac` and the app and runs every
+  test on each push. What has **not** run is the app on a real Mac with a real iCloud account: never claim runtime
+  behaviour works until someone has tried it on a real Mac. Code changed since the last green CI run is "written, not
+  compiled" until CI passes again.
 - Don't invent APIs, flags or service behavior. Check Apple, Sparkle and GitHub docs; mark anything you
   couldn't verify with `VERIFY`. If you're unsure an API exists on macOS 15, don't use it.
 
@@ -51,9 +52,9 @@ CI (`.github/workflows/ci.yml`) runs all of these plus the app build on macOS.
 - Every release needs a `## X.Y.Z — YYYY-MM-DD` section in `CHANGELOG.md`. The notes are user-facing: they become
   the GitHub release body, the Sparkle update notes and the site's changelog. Unreleased notes go under
   `## Unreleased` (never published: the site deploys on every push to `main`).
-- One base URL (`https://OWNER.github.io/whydunit-releases` until go-live, BUILD_PLAN §10.2): `site/site.json`
+- One base URL (`https://everydayopen.github.io/whydunit`, BUILD_PLAN §10.2): `site/site.json`
   `baseURL` == `App/Links.swift` `Links.website` == `App/Info.plist` `SUFeedURL` minus `/appcast.xml`.
-  `tools/doctor.sh --ci` fails when they disagree; `OWNER` is a todo, not an error.
+  `tools/doctor.sh --ci` fails when they disagree.
 - The only third-party dependency is Sparkle 2. Python tools use the standard library only (`tools/sparkle_keys.py`
   also needs `cryptography`).
 - Never commit key material (`.p12`, `.p8`, Sparkle private key) or real secrets.
