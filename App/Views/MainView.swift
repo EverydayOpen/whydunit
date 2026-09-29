@@ -13,7 +13,7 @@ struct MainView: View {
         @Bindable var store = store
         NavigationSplitView(columnVisibility: $columns) {
             SidebarView()
-                .navigationSplitViewColumnWidth(min: 200, ideal: 220, max: 280)
+                .navigationSplitViewColumnWidth(min: 230, ideal: 240, max: 300)
                 // Nothing to toggle before the first diagnosis (§5.1). Keyed to the diagnosis, not to .detailOnly, so
                 // hiding the sidebar later doesn't take away the button that brings it back. VERIFY on macOS 15 and 26.
                 .toolbar(removing: store.diagnosis == nil ? .sidebarToggle : nil)
