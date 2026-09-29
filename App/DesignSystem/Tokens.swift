@@ -14,6 +14,11 @@ enum Space {
     static let xxxl: CGFloat = 40
 }
 
+enum Brand {
+    /// Navy: the tint of every soft shadow (DESIGN.md §2.4, §3.1).
+    static let ink = Color(red: 0.06, green: 0.11, blue: 0.24)
+}
+
 /// docs/MOTION.md §1.2 and §3.1.
 enum Motion {
     /// Opacity-only and shorter when Reduce Motion is on.
@@ -178,8 +183,8 @@ extension Tag {
     init(_ text: String, tint: Color = .secondary) { self.init(text: text, tint: tint) }
 }
 
-/// Daylight on the top of a stage screen: the accent at 9% (16% in dark) fading out over 240pt. Static, never
-/// animated, never keyed to a verdict. Increase Contrast gets the plain window.
+/// Daylight on the top of a stage screen: the accent at 9% (16% in dark) fading out over 320pt, and a sun at the top
+/// centre (DESIGN.md §5.1). Static, never animated, never keyed to a verdict. Increase Contrast gets the plain window.
 struct Sky: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.colorSchemeContrast) private var contrast
@@ -189,12 +194,122 @@ struct Sky: View {
             Color(nsColor: .windowBackgroundColor)
             if contrast != .increased {
                 LinearGradient(colors: [Color.accentColor.opacity(scheme == .dark ? 0.16 : 0.09), .clear], startPoint: .top, endPoint: .bottom)
-                    .frame(height: 240)
+                    .frame(height: 320)
+                RadialGradient(colors: [.white.opacity(scheme == .dark ? 0.06 : 0.6), .clear], center: .top, startRadius: 0, endRadius: 420)
             }
         }
         .ignoresSafeArea()
         .allowsHitTesting(false)
         .accessibilityHidden(true)
+    }
+}
+
+// MARK: - Surfaces and objects (DESIGN.md §3.1; the same in Tirekick apart from Brand.ink)
+
+extension View {
+    /// Porcelain surface: white (a 5.5% white lift in dark), a hairline rim, a tight contact shadow plus a wide soft
+    /// one tinted with the brand's ink. Concentric: pass the outer radius; content inside pads by radius - inner.
+    /// Replaces grey grouped Form cells and `.quaternary` slabs. Never glass, never on a single row.
+    func surface(_ radius: CGFloat = 16) -> some View { modifier(Surface(radius: radius)) }
+}
+
+private struct Surface: ViewModifier {
+    let radius: CGFloat
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.colorSchemeContrast) private var contrast
+
+    func body(content: Content) -> some View {
+        let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
+        let dark = scheme == .dark, strong = contrast == .increased
+        content
+            // White, not `.background`: on macOS that style is the window's own grey. VERIFY by eye in both schemes.
+            .background(dark ? Color.white.opacity(0.055) : Color.white, in: shape)
+            .overlay { shape.strokeBorder(strong ? Color.primary.opacity(0.5) : Color.primary.opacity(dark ? 0.10 : 0.07), lineWidth: strong ? 1 : 0.5) }
+            .compositingGroup()   // glyphs inside don't cast their own shadows (MOTION §1.4)
+            .shadow(color: .black.opacity(dark ? 0.35 : 0.05), radius: 1, y: 1)
+            .shadow(color: Brand.ink.opacity(dark ? 0.5 : 0.10), radius: 16, y: 8)
+    }
+}
+
+/// An object standing on a glossy floor: the view, its mirror fading out over 45% of its height, and a still
+/// contact shadow at its base. Drawn once. Pass a stateless view: it is drawn twice. No mirror under Reduce
+/// Transparency.
+struct OnFloor<Content: View>: View {
+    var height: CGFloat
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    var body: some View {
+        VStack(spacing: 2) {
+            content
+                .background(alignment: .bottom) {
+                    Ellipse().fill(.black.opacity(0.16)).frame(width: height * 0.7, height: height * 0.08).blur(radius: 6)
+                        .offset(y: height * 0.04)   // centred on the base line. VERIFY by eye under an app icon
+                        .accessibilityHidden(true)
+                }
+            if !reduceTransparency {
+                content
+                    .scaleEffect(x: 1, y: -1)
+                    .frame(height: height * 0.45, alignment: .top).clipped()
+                    .mask { LinearGradient(colors: [.black.opacity(0.22), .clear], startPoint: .top, endPoint: .bottom) }
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
+            }
+        }
+    }
+}
+
+/// The key light under a lifted object: a pool of light and a thin bright line. Static; drawn once per size.
+/// `soft`: Whydunit's dawn bloom. Tirekick passes false: a hard line with a tight spill. Decorative, hidden from
+/// VoiceOver. The line runs through the middle of the view's height.
+struct Horizon: View {
+    var tint: Color
+    var width: CGFloat = 420
+    var soft = true
+    @Environment(\.colorSchemeContrast) private var contrast
+
+    var body: some View {
+        ZStack {
+            if contrast != .increased {
+                // Elliptical, so the pool fades out inside its wide, short frame instead of being cut at the edges.
+                EllipticalGradient(colors: [tint.opacity(soft ? 0.42 : 0.22), tint.opacity(soft ? 0.10 : 0), .clear],
+                                   center: .center, startRadiusFraction: 0, endRadiusFraction: 0.5)
+            }
+            LinearGradient(colors: [.clear, tint, .white.opacity(0.9), tint, .clear], startPoint: .leading, endPoint: .trailing)
+                .frame(width: width * 0.86, height: 1)
+        }
+        .frame(width: width, height: width * (soft ? 0.32 : 0.14))   // the same with or without the pool
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+}
+
+/// A small-caps label over a big number. One VoiceOver element. Whydunit passes .rounded, Tirekick .monospaced.
+struct Metric: View {
+    let label: String
+    let value: String
+    var unit: String? = nil
+    var dot: Color? = nil
+    var design: Font.Design = .rounded
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(label).font(.caption.weight(.semibold).smallCaps()).foregroundStyle(.secondary)   // VERIFY small caps with SF
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                if let dot { Circle().fill(dot).frame(width: 6, height: 6).accessibilityHidden(true) }
+                Text(value).font(.system(size: 26, weight: .semibold, design: design)).monospacedDigit()
+                if let unit { Text(unit).font(.callout.weight(.medium)).foregroundStyle(.secondary) }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+    }
+}
+
+extension Metric {
+    /// `Metric("Only on this Mac", "2.1", unit: "GB")` as well as `Metric(label:value:)`.
+    init(_ label: String, _ value: String, unit: String? = nil, dot: Color? = nil, design: Font.Design = .rounded) {
+        self.init(label: label, value: value, unit: unit, dot: dot, design: design)
     }
 }
 
@@ -209,7 +324,7 @@ struct SheetHeader: View {
             Image(systemName: symbol).font(.system(size: 22, weight: .semibold)).foregroundStyle(.tint)
                 .well(.accentColor, size: 48).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: Space.xxs) {
-                Text(title).font(.title2.weight(.bold))
+                Text(title).font(.title2.weight(.semibold))
                 Text(detail).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -235,6 +350,30 @@ extension Severity {
         case .info: "info.circle.fill"
         case .warning: "exclamationmark.triangle.fill"
         case .critical: "xmark.octagon.fill"
+        }
+    }
+}
+
+extension RuleID {
+    /// The category symbol: sidebar rows, finding rows and the finding page's header (DESIGN.md §5.1). Tinted by
+    /// severity where it's drawn. VERIFY each in the SF Symbols app for macOS 15.
+    var symbol: String {
+        switch self {
+        case .onlyOnThisMac: "laptopcomputer"
+        case .syncStalled: "clock.badge.exclamationmark"
+        case .storageFull: "externaldrive.badge.exclamationmark"
+        case .serverUnreachable: "icloud.slash"
+        case .uploadRejected: "exclamationmark.icloud"
+        case .stuckItems: "icloud.and.arrow.up"
+        case .lockFlags: "lock.doc"
+        case .conflicts: "doc.on.doc"
+        case .storageDebt: "internaldrive"
+        case .developerFolders: "hammer"
+        case .relocatedFiles: "folder.badge.questionmark"
+        case .excludedByDesign: "minus.circle"
+        case .unreadableFolders: "folder.badge.minus"
+        case .permissionDenied: "lock.shield"
+        case .tooLarge: "scalemass"
         }
     }
 }

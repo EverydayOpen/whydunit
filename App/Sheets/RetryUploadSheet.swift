@@ -56,7 +56,10 @@ struct RetryUploadSheet: View {
         }
         if !needsBackup.isEmpty {
             VStack(alignment: .leading, spacing: Space.xs) {
-                Text("Back Up First").font(.headline).accessibilityAddTraits(.isHeader)
+                Text("Back Up First")
+                    .font(.caption.weight(.semibold).smallCaps())   // section header (DESIGN.md §3.1). VERIFY small caps with SF
+                    .foregroundStyle(.secondary)
+                    .accessibilityAddTraits(.isHeader)
                 Text(needsBackup.count == 1 ? "This item has no verified backup yet, so it's left out."
                                             : "These have no verified backup yet, so they're left out.")
                     .font(.callout)

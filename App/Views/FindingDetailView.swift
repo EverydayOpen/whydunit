@@ -24,12 +24,20 @@ struct FindingDetailView: View {
             detail(finding)
         } else {
             ContentUnavailableView {
-                Label("No Longer Found", systemImage: "checkmark.circle")
+                Label {
+                    Text("No Longer Found")
+                } icon: {
+                    Image(systemName: "checkmark.circle").symbolRenderingMode(.hierarchical).foregroundStyle(.tint)
+                }
             } description: {
                 Text("The latest scan didn't find this problem.")
             } actions: {
                 Button("Show Summary") { store.route = .summary }
+                    .buttonStyle(.borderedProminent)
+                    .buttonBorderShape(.capsule)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background { Sky() }
         }
     }
 
@@ -55,6 +63,8 @@ struct FindingDetailView: View {
                 Spacer(minLength: 0)
             }
         }
+        // The header sits on the Sky; the Table draws its own opaque background over the rest (DESIGN.md §5.2).
+        .background { Sky() }
         .onChange(of: finding, initial: true) { _, finding in
             if preselected == finding.rule {
                 store.selection.formIntersection(finding.itemPaths)
@@ -150,9 +160,10 @@ struct FindingDetailView: View {
     private func header(_ finding: Finding) -> some View {
         VStack(alignment: .leading, spacing: Space.s) {
             HStack(spacing: Space.s) {
-                SeverityIcon(severity: finding.severity, size: 40, tile: true)
+                FindingWell(finding: finding, size: 44)
                 Text(finding.title)
-                    .font(.title2.weight(.bold))
+                    .font(.system(size: 22, weight: .semibold))
+                    .tracking(-0.3)
             }
             .accessibilityElement(children: .combine)
             .accessibilityAddTraits(.isHeader)
@@ -160,15 +171,15 @@ struct FindingDetailView: View {
             // Capped like System Settings' detail panes: full-width lines in a wide window are hard to read.
             Text(finding.explanation)
                 .textSelection(.enabled)
-                .frame(maxWidth: 640, alignment: .leading)
+                .frame(maxWidth: 620, alignment: .leading)
 
             if !finding.steps.isEmpty {
                 VStack(alignment: .leading, spacing: Space.xs) {
-                    Text("What to Try").font(.headline)
+                    Text("What to Try").smallCapsHeader()
                     ForEach(Array(finding.steps.enumerated()), id: \.offset) { index, step in
                         HStack(alignment: .firstTextBaseline, spacing: Space.xs) {
                             Text("\(index + 1)")
-                                .font(.caption.weight(.bold))
+                                .font(.system(.caption, design: .rounded, weight: .bold))
                                 .monospacedDigit()
                                 .frame(width: 20, height: 20)
                                 .background(Color.accentColor.opacity(0.14), in: Circle())
@@ -177,7 +188,8 @@ struct FindingDetailView: View {
                         .accessibilityElement(children: .combine)
                     }
                 }
-                .frame(maxWidth: 640, alignment: .leading)
+                .frame(maxWidth: 620, alignment: .leading)
+                .padding(.top, Space.xxs)
             }
 
             // Moved Files can name folders outside the scan roots (Relocated Items, iCloud Drive (Archive)) beside
@@ -192,6 +204,7 @@ struct FindingDetailView: View {
                 }
                 .font(.callout.monospaced())
                 .textSelection(.enabled)
+                .recessed()
             }
 
             if let command = finding.command {
@@ -205,6 +218,7 @@ struct FindingDetailView: View {
                 .font(.callout.monospaced())
                 .textSelection(.enabled)
                 .help(command)
+                .recessed()
             }
 
             // Stacked when the row doesn't fit (minimum window, inspector open), instead of truncated titles.
@@ -232,12 +246,13 @@ struct FindingDetailView: View {
             if action == finding.primaryAction {
                 button.buttonStyle(.borderedProminent).buttonBorderShape(.capsule)
             } else {
-                button.buttonStyle(.bordered)
+                button.buttonStyle(.bordered).buttonBorderShape(.capsule)
             }
         }
         if !rows.isEmpty {
             Button("Export List…") { export(finding) }
                 .buttonStyle(.bordered)
+                .buttonBorderShape(.capsule)
         }
     }
 
@@ -328,6 +343,16 @@ struct FindingDetailView: View {
     private func copy(_ paths: [String]) {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(paths.joined(separator: "\n"), forType: .string)
+    }
+}
+
+private extension View {
+    /// Mono technical text (paths, a command) in a recessed well, like the sheets' preflight block (DESIGN.md §5.2);
+    /// 620 pt wide with its padding, the explanation's measure.
+    func recessed() -> some View {
+        frame(maxWidth: 620 - 2 * Space.s, alignment: .leading)
+            .padding(Space.s)
+            .background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 }
 

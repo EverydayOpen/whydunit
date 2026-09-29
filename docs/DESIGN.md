@@ -3,756 +3,791 @@
 **Why:** the owner's verdict (2026-09-29): the sites and apps "look cheap". They must look modern, premium and 3D, on
 par with Mole, Recordly, Maccy, Rectangle, VoiceInk and MaCursor, while staying lightweight and secure.
 **Authority:** this file is authoritative for visual design (tokens, surfaces, compositions, type). `docs/MOTION.md`
-stays authoritative for motion and is referenced by section; where they conflict, §2.7 lists what changed. BUILD_PLAN
-§6 lines that need amending are listed in §9, not amended here. Safety rules, copy, data flow and the checker's
-contract are unchanged.
+stays authoritative for motion and is referenced by section; §2.8 lists exactly where this file overrides it.
+BUILD_PLAN lines that need amending are listed in §9, not amended here. Safety rules, copy, data flow and the
+checker's contract are unchanged.
 **Shared system:** §1–§3 are identical in the Tirekick repo's `docs/DESIGN.md`; change both together. §4–§9 are
 Whydunit's.
-**Status:** nothing here has been run in this repo. The Whydunit site tokens, header pill, buttons, key-caps, cards,
-FAQ rows and sky stage were prototyped in Chromium on Windows (light and dark, 1440px) in the Daylight proposal, on a
-standalone page that is not in the repo; the ghost plane, proof strip and stacked cards were not. Contrast figures
-were recomputed with the checker's formula. The Swift is written, not compiled; anything unconfirmed is marked VERIFY.
+**Status:** nothing in this file has been built. Two directions were proposed ("Afterglow", dark-first and
+cinematic; "Daylight Native", light-first and object-based); this is the final judgement and the spec builders
+implement. Every contrast figure was recomputed with `tools/build_site.py`'s own `contrast()` formula
+(`<scratchpad>/final_contrast.py`, 2026-09-29). The Swift is written, not compiled; anything unconfirmed is marked
+VERIFY.
 
 ## 1. The verdict (shared, identical in both repos)
 
-Two directions were proposed: "Night Studio" (dark, cinematic, one lit object on a dark stage) and "Daylight"
-(light, crisp, tactile key-caps, the product in its own small world). Judged against the reference screenshots
-(Mole, Recordly, Maccy, Rectangle, VoiceInk, MaCursor), the premium ones share one mechanism, not one palette: **the
-product sits inside a world, on a page that is otherwise restrained.** Mole and VoiceInk are light with a wallpaper
-frame around the app; Recordly and MaCursor are dark with a sky or a halo behind it. Rectangle and Maccy, the two
-plainest, put the product on bare white with nothing behind it, which is exactly what our sites do today.
+Judged against the reference captures, the premium references share one mechanism, not one palette: **a real
+product object sits inside a small world that has one light source, on a page that is otherwise quiet.** Recordly
+(dark page) floats its window over a blue sky; Mole (light page) floats its window over a silk wallpaper; VoiceInk's
+social card stands its icon on a lit horizon; MaCursor, the weakest of the six, is a generic dark-blue template with
+nothing lit. Rectangle and Maccy, the plainest, put the product on bare white, which is where our sites are today.
 
-So the family rule is **one product, one world, one accent**, and each brand picks the world that fits its job:
+Neither proposal wins outright. Each brand takes the direction whose *world* fits its job, and grafts the other's
+best mechanics:
 
 | | Whydunit | Tirekick |
 |---|---|---|
-| World | **Sky**: daylight over iCloud, dusk at night. Light-first, follows the system (`prefers-color-scheme`). | **Bay**: a warm-graphite inspection bay lit from above. Dark on every page, in both schemes. |
-| Why | Ordinary Mac users with a stuck file want calm and trust. Apple's own iCloud language is white and blue. Mole and VoiceInk prove light reads premium when the product is framed. | A buyer at a meetup wants a tool that looks like an instrument. Dark graphite, mono readouts and one hi-vis accent are distinct from every other Mac utility and from Whydunit. |
-| Accent | Sky blue `#2457E0` (`#3461EA` at dusk), also the app's AccentColor. | Hi-vis lime `#C6F23C`, black text on it. Only the one prominent button, the beam, tested keys and eyebrow indices. The app keeps the user's accent for controls. |
-| Type voice | Centered, soft pills, `ui-rounded` numerals. | Left-aligned, machined 12px corners, `ui-monospace` eyebrows and readouts. |
-| Hero object | The app window floating over a cloud in a sky frame, a ghost Finder window behind it. | A CSS laptop standing back-left, the white report card leaning in front-right, on a tread-marked floor with a lime horizon. |
-| Signature scroll moment | Three safe fixes as sticky stacking cards. | Six key-cap test tiles and a paper fan of the shareable card. |
+| Direction | **Daylight Native** (light-first, dark follows the system). | **Night Bay** (dark on every page, in both schemes). |
+| Why | iCloud's own language is white and blue; the app is light by default; Mole and VoiceInk prove light reads premium when the product is framed in a world. Calm is the brand. | The white report card must be the brightest object on the page, which only a dark bay gives. A hard lime laser, a floor grid and mono readouts read as an instrument, distinct from every other Mac utility and from Whydunit. |
+| World | A **macOS desktop diorama**: a dawn wallpaper with a horizon glow, a menu bar, a Finder window behind, the Whydunit window in front, a notification landing top right. Real Mac objects, no cartoon cloud. | An **inspection bay**: a full-bleed night band, a perspective floor grid, one lime laser line, the CSS laptop behind and the paper report card in front. |
+| Grafted from the other | From Afterglow: one key light per scene (the horizon glow), lit top rims on every raised surface, real CI captures only at half scale, small-caps labels, severity only in dots and tags, the sidebar without an orange wall, `Horizon` under one object per stage screen. | From Daylight: the `<mark>` highlighter on the h1, a paper-stack edge on the report card, key-caps that sink on `:active`, the StepBar loses its lime, the verdict header without a box, the `html[lang]` fix, real screenshots below the fold. |
+| Accent | Sky blue `#2457E0` (`#3563EA` at night). The app keeps AccentColor. | Hi-vis lime `#C6F23C`, black text on it. Only the one prominent button, the laser, LEDs and eyebrow indices. |
+| Type voice | Inter Display 600 headlines, centered hero, `ui-rounded` numerals, pills. | Inter Display 600 headlines, left-aligned hero, `ui-monospace` readouts, 12px machined corners. |
+| Signature scroll moment | Three safe fixes as sticky stacking cards; a real-screens filmstrip. | Six key-cap test tiles; a paper fan of the shareable card. |
 
-What each brand takes from the other direction: Whydunit takes Night Studio's volumetric cloud, proof strip,
-"Finder says / Whydunit says" pairs, type ladder and System Settings–style sidebar tiles. Tirekick takes Daylight's
-key-cap recipe, contact shadows, verdict plate on the report card, `StepBar` with a hidden title bar, and its
-prototype-tested stage structure.
+**Decided, in both brands** (each reverses an earlier rule; the reasons are in the sections named):
 
-**Not doing, in either brand:** a webfont (every real visitor is on a Mac and gets SF Pro; Windows gets Segoe UI
-Variable, which the Daylight prototype showed is fine), a CSP meta tag (the sites load only same-origin files; it
-would only force the `style="--i"` stagger to be rewritten), a nav CTA that hides itself (needs JS for no gain),
-mesh blobs, gradient text, emoji icons, live star counts, autoplay video, glass on content.
+1. **One webfont**, Inter Display SemiBold, Latin subset, ≤ 32 KB, byte-identical in both repos (§2.2). The owner
+   judges the sites on Windows, where every headline currently renders in Segoe UI Bold: the single cheapest thing on
+   either page. Body and UI text stay on the system stack.
+2. **Real CI screenshots below the fold**, shown at half their pixel width (§2.6). The hero stays HTML.
+3. **Content surfaces are porcelain panels**, never grey grouped cells, in both apps (§3.1). Glass exists only on the
+   controls layer, and only where the macOS 26 SDK or `barSurface()` draws it (§3.2).
+4. **No serif clause, no `ui-serif`.** VoiceInk's italic is lovely, but a second display voice on top of Inter
+   Display is one voice too many, and Windows would render it in Georgia. One display face.
+5. **Whydunit keeps its toolbar actions** (BUILD_PLAN §6); no floating selection bar. Tirekick keeps its floating bar.
+6. **Icons are unchanged for now.** The OG images are redone (§6). An Icon Composer `.icon` waits for a Mac.
+
+**Not doing, in either brand:** a CDN, a tracker, a second font, a live star count, autoplay video, mesh blobs,
+gradient text, emoji icons, glass on content, a nav CTA that hides itself, `style=""` attributes, `data-theme`.
 
 ### 1.1 The eight rules
 
-1. **One world per product.** The sky or the bay appears behind the hero scene, the finale and the download page's
-   icon. Every other section is paper (Whydunit) or graphite (Tirekick), separated by whitespace, never by bands.
-2. **One accent.** Green, orange and red mean a verdict or a status, and appear only in symbols, tag dots and fills
-   behind primary text. Severity never glows: a red "Walk away" is lit exactly like a green "Clean" (MOTION.md §1.1).
-3. **Light, not lines.** A key light at the top of the stage, the brand light behind the object, a lit top edge on
-   every raised surface, shadows tinted with the brand's ink (navy or warm black), never neutral gray, never animated.
-4. **Everything you can press is a key-cap:** a gradient lighter at the top, `inset 0 1px 0` highlight, a hairline,
-   and a press that sinks 1px.
-5. **Concentric radii:** outer radius = inner radius + padding. Whydunit 10/14/20/28 and pills; Tirekick 6/10/14/20
-   and 12px buttons.
-6. **Grain on big gradients only** (3–6% noise from an inline SVG, under 1 KB), never under body text. It stops
-   8-bit banding, the commonest "cheap dark gradient" tell.
-7. **Zero bytes added:** no fonts, images, scripts, CDNs or third-party requests. Illustrations are HTML and CSS.
-   `motion.js` stays byte-identical in both repos.
-8. **The apps stay native.** Navigation, tables, forms, sheets, Settings and the toolbar are system parts. Premium
-   comes from the accent, a static wash, icon wells, tags, key-caps, one lifted object per stage screen, and the
-   precision of the type. No custom chrome, and glass only where the macOS 26 SDK draws it by itself.
+1. **One world per product, and it appears only behind objects:** the hero scene, the fixes' media wells, the finale
+   and the download page's icon. Every other section is paper (Whydunit) or graphite (Tirekick), paced by whitespace.
+2. **One key light per scene.** Whydunit's is the dawn glow on the wallpaper's horizon; Tirekick's is the lime laser.
+   Nothing else glows, and a glow is never severity-coloured (MOTION §1.1 rule 3).
+3. **Light, not lines.** Every raised surface has a lit top edge (`inset 0 1px 0`), a 0.5px hairline (a 1px light
+   rim in dark, because black swallows shadows) and a shadow tinted with the brand's ink, never neutral grey, never
+   animated (MOTION §1.4).
+4. **One accent.** Green, orange and red mean a status and appear only in 6px dots, symbols and tag fills behind
+   primary text. Severity never gets a coloured panel: a red "Walk away" is set exactly like a green "Clean".
+5. **Objects, not illustrations.** Every product visual is a faithful Mac object: a window, a sheet, a notification,
+   a Finder list, the report card, the laptop. No cartoon clouds, orbs or glossy coins.
+6. **Everything you can press is a key-cap:** a gradient lighter at the top, a lit rim, a hairline, a side wall in
+   Tirekick, and a press that sinks 1–2px with the shadow swapped instantly (never transitioned).
+7. **Concentric radii:** outer radius = inner radius + padding. Whydunit 8/12/18/28 and pills; Tirekick 6/10/14/20
+   and 12px buttons. Grain (≤ 6%, inline SVG) only on wallpaper and bay gradients, never under body text.
+8. **The apps stay native.** Navigation, tables, sheets, Settings, the toolbar and the inspector are system parts.
+   Premium comes from the wash, porcelain panels, one lifted object per stage screen, the accent, tags, key-caps and
+   the precision of the type. Nothing moves at idle.
 
 ## 2. Shared web foundation
 
 ### 2.1 The contract with `tools/build_site.py`
 
 - `contrast()` reads exactly two `:root { }` blocks and only 6-digit hex tokens. Whydunit's blocks are light then
-  dark. Tirekick's are the base (dark) palette then `@media (prefers-contrast: more)`; the checker's "light"/"dark"
-  labels are just labels. Everything else overrides on `html` or a class (MOTION.md §1.6).
-- `--on-button` is measured against `--button` and `--button-hover` once infra applies the one-line change in the
-  brand section. Until then Tirekick's black-on-lime fails the hard-coded white check.
+  `@media (prefers-color-scheme: dark)`. Tirekick's are the base (dark) palette then `@media (prefers-contrast:
+  more)`. Every other override sits on `html[lang]` (§2.7), never on a third `:root`.
+- Hero copy sits on `--bg` in both brands (the diorama and the bay are behind objects only), so no new pairs are
+  needed. The window replica (`--win-*`) and the report card (`--paper*`) are `role="img"` pictures, not measured.
 - `data-theme` and `localStorage` must not appear anywhere, including comments.
-- All numbers in the token comments were computed with the checker's own WCAG formula (`<scratchpad>/design_contrast.py`, 2026-09-29).
+- Tirekick's `CSP` constant and `layout.html` meta must gain `font-src 'self'` (tools owner, §9). Whydunit's
+  `default-src 'self'` already permits the font.
+- `build_site.py` rewrites `href="/` and `src="/`; it must also rewrite and link-check `srcset="/` before the real
+  screens ship (§2.6; tools owner).
 
-### 2.2 Type: SF Pro, zero bytes
+### 2.2 Type: Inter Display for headlines, the system for everything else
 
-Stack: `-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`.
-Numerals: Whydunit `ui-rounded` (SF Pro Rounded in Safari), Tirekick `ui-monospace` (SF Mono). Both are system fonts.
+**File.** Inter Display SemiBold from Inter 4.x (SIL OFL 1.1, `github.com/rsms/inter` releases), subset once to
+Latin with fonttools on a dev machine (a one-off, not a repo tool), committed with `OFL.txt` at
+`site/static/fonts/InterDisplay-SemiBold.woff2` in both repos, byte-identical. Expected 20–30 KB; the cap is 32 KB
+(VERIFY after subsetting). `font-display: optional` plus a preload: it paints on the first frame or not at all for
+that view, so CLS is 0 and the h1 stays the LCP.
 
 ```css
-/* Type ladder (docs/DESIGN.md §2.2). Every size on the site is one of these; nothing in between.
-   h1     clamp(2.6rem, 1.4rem + 5vw, 4.75rem) / 1.02, -.032em, 700, text-wrap: balance
-   h2     clamp(2rem, 1.2rem + 3vw, 3.1rem)    / 1.06, -.026em, 700, balance
-   lede   clamp(1.1rem, 1rem + .5vw, 1.3rem)  / 1.45, -.011em, 400, --text-2
-   h3     1.2rem / 1.3, -.015em, 600          body 17px / 1.55, -.011em          prose 17px / 1.6 (guides)
-   card   15px / 1.5                          meta 13px / 1.4 (facts, captions)  floor 12px / 1.2, 600 (chrome, tags)
-   eyebrow: Whydunit 13px 600 --accent; Tirekick 12px 600 mono, .06em, sentence case (BUILD_PLAN §8: no ALL CAPS). */
+/* Relative URL: the site is served under a project path and the build doesn't rewrite CSS url(). */
+@font-face { font-family: "Inter Display"; src: url("fonts/InterDisplay-SemiBold.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: optional; }
+```
+```html
+<!-- layout.html, before the stylesheet; the build prefixes href="/ -->
+<link rel="preload" href="/fonts/InterDisplay-SemiBold.woff2" as="font" type="font/woff2" crossorigin>
 ```
 
-- **Two-tone headings** on every h1 and h2 that has a reassurance clause: `<h2>Built to never lose a file. <span class="dim">Every change is logged.</span></h2>`.
-- **Numbers** are `font-variant-numeric: tabular-nums` everywhere they line up.
-- VERIFY headline tracking by eye in Safari on a Mac: SF Pro Display already tightens above 20px, so −.032em may
-  want to relax to −.028em.
+Stacks (first `:root` block):
+
+```css
+--font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+--font-display: "Inter Display", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable Display", "Segoe UI", sans-serif;
+--font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, "Cascadia Mono", Consolas, monospace;
+```
+
+**Type ladder.** Put this comment at the top of both `styles.css` files; no size outside it.
+
+```css
+/* Type ladder (docs/DESIGN.md §2.2). Display = var(--font-display) 600; everything else = var(--font).
+   h1       display  clamp(2.75rem, 1.5rem + 4.8vw, 5.25rem) / 1.0,  -.038em, text-wrap: balance
+   h2       display  clamp(2rem, 1.35rem + 2.6vw, 3.25rem)   / 1.04, -.032em, balance
+   feature  display  clamp(1.5rem, 1.2rem + 1vw, 2rem)       / 1.1,  -.025em
+   card h3  system   17px / 1.3, -.015em, 600
+   lede     system   clamp(1.125rem, 1rem + .45vw, 1.3125rem) / 1.45, -.012em, --text-2
+   body     17px / 1.55, -.011em        small 15px / 1.5        meta 13px / 1.4, 500
+   numerals display, tabular-nums: 40px (proof strip), 64–88px (finale)
+   labels   13px 600 with font-variant-caps: all-small-caps and .04em tracking (styling, not ALL CAPS copy)
+   eyebrow  Whydunit 13px 600 --accent · Tirekick 12px 500 mono "01 · Checks", index in --accent
+   numerals in UI: Whydunit ui-rounded, Tirekick ui-monospace, both tabular */
+h1, h2, .display, .feature h3, .proof dd, .brand { font-family: var(--font-display); font-weight: 600; }
+```
+
+Weight 600, not 700: at 44–84px, Inter Display SemiBold at −.038em reads engineered; Bold reads loud. Recordly
+makes the same choice. Two-tone headings stay (`<span class="dim">`); numbers that line up are `tabular-nums`.
 
 ### 2.3 Space, widths and radii
 
-- Widths: `.wrap` 1080px (content), `.wide` 1200px (stages), `.read` 720px (prose, FAQ). Gutter 20px.
-- Section padding `clamp(72px, 11vw, 128px)`. Gaps are 12, 16, 24, 32, 48 or 64px.
+- Widths: `.wrap` 1080px (content), `.wide` 1240px (stages), `.read` 720px (prose, FAQ). Gutter 20px, 16px under 480.
+- `main > section { padding-block: clamp(72px, 10vw, 136px) }`: more silence, fewer sections. Gaps are 12, 16, 24,
+  32, 48 or 64px. `scroll-padding-top: 84px`.
 - Radii tokens `--r-s / --r-m / --r-l / --r-xl` and `--r-btn` come from each brand's `:root`.
-- `scroll-padding-top: 84px` so anchors clear the floating header.
 
-### 2.4 Shared component CSS (identical in both repos, about 7.5 KB)
+### 2.4 Light and depth (MOTION §1.4 names, retuned values)
 
-These rules read only tokens; each brand's `:root` blocks supply the values. They **replace** the old rules of the
-same name (`.site-header`, `.nav`, `.button*`, `.card`, `details`, `summary`, `.site-footer`) and MOTION.md §1.7's
-`.button { transition: … }` line. Delete `.band`, `section:not(.band) .card` and `.hero-icon`.
+Every shadow and hairline is the brand's ink at an alpha. Light recipe (dark values are in each brand's tokens):
+
+| Token | Role | Recipe |
+|---|---|---|
+| `--hi` | lit top edge on raised surfaces | `rgb(255 255 255 / .9)`; dark `/ .06` |
+| `--z1` | hairline plus contact: rows, pills, the header | `0 0 0 .5px ink/.12, 0 1px 2px ink/.05` |
+| `--z2` | porcelain card | `inset 0 1px 0 var(--hi), 0 0 0 .5px ink/.12, 0 2px 4px ink/.04, 0 12px 28px -12px ink/.16` |
+| `--shadow` | a floating object on paper | `0 0 0 .5px ink/.22, 0 2px 4px ink/.06, 0 24px 48px -16px ink/.30, 0 64px 128px -32px ink/.34` |
+| `--shadow-win` | a window on the wallpaper | `0 0 0 .5px rgb(0 0 0 / .28), 0 2px 6px rgb(0 0 0 / .08), 0 28px 56px -12px wp-ink/.45, 0 72px 140px -24px wp-ink/.5` |
+| `--cap` | key-caps (buttons, pills, test keys) | `inset 0 1px 0 var(--hi), 0 0 0 .5px ink/.18, 0 1px 2px ink/.08, 0 4px 10px -4px ink/.12` |
+
+In dark every shadow is black at .5–.8 and the hairline becomes a `0 0 0 1px rgb(255 255 255 / .07–.10)` rim. Never
+animate `box-shadow` or `filter`; a state swap with no transition is fine.
+
+### 2.5 Shared components (identical CSS in both repos; tokens differ)
+
+These replace the current rules of the same name. Everything else in the current files stays.
 
 ```css
-/* Design system (docs/DESIGN.md §2.4). Brand lives in the two :root blocks; these rules only read tokens. */
-h1 { font-size: clamp(2.6rem, 1.4rem + 5vw, 4.75rem); letter-spacing: -.032em; line-height: 1.02; text-wrap: balance; }
-h2 { font-size: clamp(2rem, 1.2rem + 3vw, 3.1rem); letter-spacing: -.026em; line-height: 1.06; text-wrap: balance; }
-.dim { color: var(--text-2); }
-.eyebrow { margin: 0 0 14px; color: var(--accent); font-size: 13px; font-weight: 600; }
-main > section { padding-block: clamp(72px, 11vw, 128px); }
-.wrap { max-width: 1080px; }
-.wide { max-width: 1200px; margin-inline: auto; padding-inline: 20px; }
-.read { max-width: 720px; }
-html { scroll-padding-top: 84px; }
+/* Header pill: 48px, the only backdrop-filter on the page. */
+.nav { height: 48px; max-width: 980px; padding: 0 6px 0 14px; border-radius: 999px; background: var(--header);
+  -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+  box-shadow: inset 0 1px 0 var(--hi), var(--z1); }
+.brand { font-size: 17px; letter-spacing: -.02em; }
 
-/* Header: a floating glass pill (Mole). Glass only here, never inside a 3D scene (MOTION.md §1.6). */
-.site-header { position: sticky; top: 10px; z-index: 10; padding-inline: 12px; background: none; border: 0; -webkit-backdrop-filter: none; backdrop-filter: none; }
-.nav { max-width: 1000px; height: 52px; margin: 10px auto 0; padding: 0 8px 0 16px; gap: 20px; border-radius: 999px; background: var(--header); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px); box-shadow: var(--z1); }
-.brand { font-weight: 600; letter-spacing: -.02em; }
-.brand img { border-radius: 6px; box-shadow: 0 1px 2px rgb(var(--ink) / .25); }
-.nav .button + .button { margin-left: -8px; }
+/* Section head: editorial, left-aligned; heading left, lede right on wide screens. */
+.sec-head { display: grid; gap: 16px 64px; align-items: end; margin-bottom: clamp(40px, 5vw, 64px); }
+@media (min-width: 900px) { .sec-head { grid-template-columns: 7fr 5fr; } }
+.sec-head h2, .sec-head .lede { margin: 0; }
 
-/* Buttons: key-caps. The fill only darkens toward the bottom, so the label never drops below the measured
-   --on-button/--button contrast; the light is an inset line plus a glow in the brand colour. */
-.button { gap: 10px; min-height: 48px; padding: 0 22px; border: 1px solid transparent; border-radius: var(--r-btn); font-size: 16px; font-weight: 600; letter-spacing: -.01em; color: var(--on-button);
+/* Primary button: a key-cap whose fill only darkens downward, so the label keeps its measured contrast. */
+.button { border-radius: var(--r-btn); min-height: 48px; padding: 0 22px; font: 600 16px/1 var(--font); color: var(--on-button);
   background: linear-gradient(var(--button), color-mix(in srgb, var(--button) 88%, #000));
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / .25), 0 1px 2px rgb(var(--ink) / .25), 0 10px 24px -8px color-mix(in srgb, var(--button) 60%, transparent); }
-.button:hover { background: linear-gradient(var(--button-hover), color-mix(in srgb, var(--button-hover) 88%, #000)); text-decoration: none; }
-.button svg { flex: none; width: 18px; height: 18px; }
-.button .sep { align-self: stretch; width: 1px; margin-block: 13px; background: currentColor; opacity: .28; }   /* glyph | label (Maccy) */
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .3), inset 0 -1px 0 rgb(0 0 0 / .18), var(--cap); }
 .button.secondary { color: var(--text); background: linear-gradient(var(--cap-top), var(--cap-bot)); box-shadow: var(--cap); }
-.button.small { min-height: 36px; padding: 0 16px; font-size: 14px; }
-.skip { color: var(--on-button); }
-@media (prefers-reduced-motion: no-preference) {
-  .button { transition: background-color .2s, translate var(--t-fast) var(--ease-out), scale var(--t-fast) var(--ease-out); }   /* replaces MOTION §1.7's line; :active { scale: .97 } stays */
-}
-@media (prefers-reduced-motion: no-preference) and (hover: hover) { .button:hover { translate: 0 -1px; } }
+.button:active { translate: 0 1px; box-shadow: inset 0 1px 0 rgb(255 255 255 / .3), 0 0 0 .5px rgb(var(--ink) / .18); }
 
-/* Kicker chip over the h1 (Whydunit) and the facts line under the CTAs (both). */
-.kicker { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 22px; padding: 6px 12px 6px 7px; border-radius: 999px; font-size: 13px; font-weight: 600; background: linear-gradient(var(--cap-top), var(--cap-bot)); box-shadow: var(--cap); }
-.kicker svg { width: 20px; height: 20px; padding: 3px; border-radius: 50%; color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--card)); }
-.facts { margin: 0; font-size: 13px; color: var(--text-2); }
+/* Porcelain card. */
+.card { border-radius: var(--r-l); background: var(--card); box-shadow: var(--z2); }
 
-/* Cards are raised objects: a hairline, a lit top edge (inside --z2) and an ink-tinted two-layer shadow. */
-.card { padding: 26px; border-radius: var(--r-l); background: var(--card); box-shadow: var(--z2); }
-.card h3 { margin: 16px 0 6px; }
-.card p { font-size: 15px; line-height: 1.5; }
-/* Icon well: recessed, tinted with the accent, holds a 1.7-stroke inline SVG. */
-.well { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; color: var(--accent);
-  background: linear-gradient(color-mix(in srgb, var(--accent) 14%, var(--card)), color-mix(in srgb, var(--accent) 6%, var(--card)));
-  box-shadow: inset 0 0 0 .5px color-mix(in srgb, var(--accent) 30%, transparent), inset 0 1px 2px rgb(var(--ink) / .08); }
-.well svg { width: 22px; height: 22px; }
-/* Tags: colour lives in the dot and the fill; the text stays --text, so it always passes. */
-.tag { display: inline-flex; align-items: center; gap: 6px; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text);
-  background: color-mix(in srgb, var(--c, var(--text-2)) 14%, var(--card)); box-shadow: inset 0 0 0 .5px color-mix(in srgb, var(--c, var(--text-2)) 40%, transparent); }
-.tag::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--c, var(--text-2)); }
-.tag.ok { --c: var(--ok); } .tag.warn { --c: var(--warn); } .tag.bad { --c: var(--bad); } .tag.info { --c: var(--accent); }
+/* Proof strip: hairlines only, no box. */
+.proof { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border-block: 1px solid var(--line); }
+.proof div { padding: 24px 28px 24px 0; } .proof div + div { border-left: 1px solid var(--line); padding-left: 28px; }
+.proof dd { font: 600 clamp(28px, 3.2vw, 44px)/1 var(--font-display); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+@media (max-width: 720px) { .proof { grid-template-columns: 1fr 1fr; } .proof div:nth-child(odd) { border-left: 0; padding-left: 0; } }
 
-/* Proof strip (VoiceInk): facts in the display face; the hairlines are the grid gap, so wrapping never breaks them. */
-.proof { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 1px; margin: 0; overflow: clip; border-radius: var(--r-l); background: var(--line); box-shadow: var(--z1); }
-.proof div { display: flex; flex-direction: column-reverse; gap: 8px; padding: 22px 26px; background: var(--card); }
-.proof dd { margin: 0; font: 700 clamp(28px, 3vw, 40px)/1 var(--font-num); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
-.proof dt { font-size: 13px; color: var(--text-2); }
+/* Ledger: rules as a spec sheet. Replaces icon-well card grids. */
+.rules { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+.rules li { display: grid; grid-template-columns: 1fr auto; gap: 4px 24px; padding: 20px 0; border-bottom: 1px solid var(--line); }
+.rules h3 { margin: 0; font: 600 17px/1.3 var(--font); letter-spacing: -.015em; }
+.rules p { margin: 0; color: var(--text-2); font-size: 15px; }
+.rules code { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
 
-/* "They say / we find" pairs: a quiet claim card with the finding card lying on top of it. */
-.pair { display: grid; }
-.pair .claim { padding: 18px 20px 44px; border-radius: var(--r-l); background: var(--bg-alt); box-shadow: inset 0 0 0 1px var(--line); color: var(--text-2); }
-.pair .finding { margin: -30px 0 0 10%; padding: 16px 18px; border-radius: var(--r-m); background: var(--card); box-shadow: var(--shadow); }
-.pair .finding .tag { margin-bottom: 8px; }
+/* FAQ: one grouped panel with hairline rows (System Settings), not a stack of cards. "+" turns into "×", no JS. */
+.faq-list { border-radius: var(--r-l); background: var(--card); box-shadow: var(--z2); }
+.faq-list details { padding-inline: 20px; } .faq-list details + details { border-top: 1px solid var(--line); }
+.faq-list summary::after { content: "+"; transition: rotate var(--t-base) var(--ease-spring); }
+.faq-list details[open] summary::after { rotate: 45deg; }
 
-/* FAQ: native <details> as rows you can pick up. MOTION's unfold and +/− turn are unchanged. */
-.faq { display: grid; gap: 32px 64px; }
-@media (min-width: 900px) { .faq { grid-template-columns: 5fr 7fr; } .faq-head { position: sticky; top: 96px; align-self: start; } }
-details { border: 0; padding-inline: 20px; border-radius: var(--r-m); background: var(--card); box-shadow: var(--z1); }
-details + details { margin-top: 10px; }
-details:first-of-type { margin-top: 0; border-top: 0; }
-details[open] { box-shadow: var(--z2); }
-summary { padding-block: 18px; font-size: 1.05rem; }
-details p { margin-bottom: 20px; }
+/* Real screens: a scroll-snap filmstrip (§2.6). Keyboard-scrollable, no lightbox, no JS. */
+.film { display: grid; grid-auto-flow: column; grid-auto-columns: min(560px, 84vw); gap: 24px; overflow-x: auto;
+  scroll-snap-type: x mandatory; overscroll-behavior-x: contain; padding: 8px 20px 36px; scrollbar-width: thin; }
+.film figure { margin: 0; scroll-snap-align: center; }
+.film img { display: block; width: 100%; height: auto; border-radius: 10px; background: var(--win-bg); box-shadow: var(--shadow); }
+.film figcaption { margin-top: 12px; font-size: 13px; color: var(--text-2); }
 
-/* The stage: a still backdrop behind the 3D scene (only .scene moves, MOTION §1.1). Brands paint ::before. */
-.stage { position: relative; isolation: isolate; }
-.stage::before { content: ""; position: absolute; z-index: -2; inset: 0; border-radius: var(--r-xl); box-shadow: inset 0 0 0 1px rgb(var(--ink) / .06); }
-@media (max-width: 640px) { .stage { margin-inline: -20px; } .stage::before, .stage::after { border-radius: 0; } }
+/* Finale: the app icon standing on a glossy floor. Chrome and Safari reflect; Firefox simply doesn't. */
+.finale .icon { width: 128px; height: 128px; -webkit-box-reflect: below 6px linear-gradient(transparent 62%, rgb(0 0 0 / .22)); }   /* VERIFY inside a 3D parent in Safari */
 
-/* Finale: the app icon as an object in the world, then the last CTA. Brands paint .panel. */
-.finale { text-align: center; }
-.finale .panel { position: relative; overflow: clip; padding: 72px 24px; border-radius: var(--r-xl); box-shadow: var(--z2); }
-.finale .icon { display: block; width: 112px; height: 112px; margin: 0 auto 28px; filter: drop-shadow(0 24px 30px rgb(var(--ink) / .3)); }
-.finale h2 { margin-bottom: 24px; }
-@media (max-width: 640px) { .finale .panel { margin-inline: -20px; border-radius: 0; } }
-@media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
-  .finale .panel { perspective: var(--persp-card); }
-  .finale .icon[data-tilt] { --tilt: 12deg; transform: rotateX(calc(var(--py) * var(--tilt) * -1)) rotateY(calc(var(--px) * var(--tilt))); transition: transform var(--t-slow) var(--ease-out); }
-  .finale .icon.tilting { transition-duration: var(--t-fast); }
-}
-
-/* Reading pages: boxes and code as objects, nothing moves. */
-.summary { background: var(--card); box-shadow: var(--z1); }
-code { background: var(--bg-alt); box-shadow: inset 0 0 0 .5px rgb(var(--ink) / .1); }
-.release { padding: 22px 24px; border-radius: var(--r-l); background: var(--card); box-shadow: var(--z1); }
-.release + .release { margin-top: 20px; border-top: 0; }
-.release .tag { font-family: var(--font-mono); }
-
-/* Footer: one slab plus the official-sources line (Maccy, Mole): quiet, and security-relevant. */
-.site-footer { padding: 56px 0 40px; border-top: 1px solid var(--line); background: var(--bg-alt); }
-.official { display: flex; gap: 10px; align-items: flex-start; margin: 28px 0 0; padding: 12px 14px; border-radius: var(--r-s); background: var(--card); box-shadow: var(--z1); color: var(--text-2); font-size: 13px; }
-.official svg { flex: none; width: 18px; height: 18px; margin-top: 1px; color: var(--accent); }
-
-/* Accessibility variants and print. */
-@media (prefers-reduced-transparency: reduce) { .nav { background: var(--card); -webkit-backdrop-filter: none; backdrop-filter: none; } }
-@media (prefers-contrast: more) {
-  html { --grain: none; --glare: transparent; }
-  .card, details, .nav, .button, .kicker, .official, .tag, .proof { box-shadow: 0 0 0 2px var(--text); }
-}
-@media (forced-colors: active) { .button, .card, details, .tag, .well, .proof div { border: 1px solid CanvasText; } }
-@media print {
-  html { --bg: #fff; --bg-alt: #fff; --card: #fff; --text: #000; --text-2: #333; --accent: #0645ad; --grain: none; }
-  .site-header, .site-footer, .skip, .stage::before, .stage::after, .finale { display: none; }
-  .card, details, .summary, .release { box-shadow: 0 0 0 1px #ccc; }
-}
+/* Small-caps labels. */
+.label { font: 600 13px/1.3 var(--font); font-variant-caps: all-small-caps; letter-spacing: .04em; color: var(--text-2); }
 ```
 
-Markup that goes with it (both sites):
+### 2.6 Imagery: an HTML hero, real screenshots below the fold
 
-- **Sprite:** add `<symbol id="i-down" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M4.5 19.5h15"/></symbol>`.
-- **Nav** (`layout.html`): `<a class="button secondary small" href="https://github.com/{{releasesRepo}}">Source</a><a class="button small" href="/download/">Download</a>`. No star count, so no request.
-- **Footer** (`layout.html`), after the columns: `<p class="official"><svg aria-hidden="true"><use href="#i-check"/></svg>The only official site is {{baseURL}}. Downloads come only from github.com/{{releasesRepo}}/releases.</p>`. The sprite must then live in `layout.html`, not each page. After the signed 1.0 ships, add "Every release is signed with an Apple Developer ID and notarized by Apple."
-- **Illustrations** keep their "Illustration with sample data" caption and `role="img"` labels.
+- **Hero:** an HTML replica of the app (0 image bytes, sharp at any DPI, follows the scheme). Caption: "Illustration
+  with sample data". Its copy matches `App/Demo.swift`, so the replica and the CI captures agree.
+- **Real screens:** 3 CI captures per brand in the `.film` strip, one image per scheme.
+  - **The half-scale rule.** The CI runner's display is 1x: a 1120×760pt window captures at 1136×804 with the
+    shadow. An image shown at half its pixel width is exact 2x on Retina, so a 1120px capture is shown at 560 CSS px.
+    Never show a capture at a size that upscales it.
+  - **Pipeline (CI owner, `screens.yml`):** add a no-shadow variant `screencapture -x -o -l "$ID"`; convert with
+    `sips -s format jpeg -s formatOptions 82 in.png --out shots/<screen>-<mode>.jpg` (VERIFY the percent syntax;
+    VERIFY whether `sips --formats` lists WebP as writable on the runner and prefer it); cap each file at 110 KB. The
+    lead commits the chosen files to `site/static/shots/`; they're our own app.
+  - **Markup:** `<picture>` with a dark `<source>`, `width` and `height`, `loading="lazy" decoding="async"`, a
+    real `alt`. `img { border-radius: 10px }` hides the JPEG's filled corners (VERIFY by eye against the window
+    radius at half scale).
+  - Ship the section only once the captures are committed; until then leave it out of the page.
 
-### 2.5 Where gradients, grain and glass are allowed
+### 2.7 Accessibility media, and a bug to fix first
 
-| Effect | Allowed on | Never on |
-|---|---|---|
-| Large gradient (sky, bay) | the hero stage, the finale panel, the download page's icon panel, the media wells of stacked cards | paper sections or cards |
-| Small gradient (cap, well, orb, button) | key-caps, wells, step orbs, buttons | text |
-| Grain (`--grain`) | large gradients only; `none` under `prefers-contrast: more` and in print | body text, paper |
-| Glass (`backdrop-filter`) | the header pill only | anything inside `.stage` (Safari flattens it) or on cards |
-| Gradient text, mesh blobs, orbs, marquees | nowhere | everywhere |
+**Bug (both sites).** The `html { --grain: none; … }` overrides under `prefers-contrast: more` and `@media print`
+never apply: `:root` has specificity (0,1,0) and beats `html` (0,0,1) whatever the order (Whydunit `styles.css`
+lines 468 and 473, Tirekick 479 and 484). Tirekick therefore prints light text on white paper. Fix: `html[lang] { … }`
+(0,1,1) wins, and it doesn't match the checker's `:root\s*\{` regex, so the two-block rule holds. Both `layout.html`
+files already set `<html lang="en">`.
 
-### 2.6 Sub-pages (download, changelog, guides, support, legal, 404)
+```css
+@media (prefers-contrast: more) { html[lang] { --grain: none; --glare: transparent; --glow: transparent; }
+  .card, details, .nav, .button, .tag, .proof, .faq-list, .note, .window, .report { box-shadow: 0 0 0 2px var(--text); } .finale .icon { -webkit-box-reflect: unset; } }
+@media (prefers-reduced-transparency: reduce) { .nav { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--card); } }
+@media (forced-colors: active) { .button, .card, details, .tag, .well, .proof div, .nav, .note { border: 1px solid CanvasText; } }
+@media print { html[lang] { color-scheme: light; --bg: #fff; --bg-alt: #fff; --card: #fff; --text: #000; --text-2: #333; --grain: none; }
+  .site-header, .site-footer, .skip, .stage, .finale, .film { display: none; } }
+```
 
-- **Reading pages stay still** (MOTION.md): no stage, no tilt. Header strip: `.eyebrow`, h1 at `clamp(2.1rem, 5vw, 3.2rem)`, one meta line in `--text-2`. Prose is `.read` (720px) at 17px/1.6. `.summary` boxes are cards with `--z1`; `code` and `pre` are recessed.
-- **Download:** the icon as an object on a small world panel (the finale `.panel` at 220px tall, the icon 128px with `data-tilt`), then h1, the button, the requirements line, three numbered steps (Open the DMG · Drag to Applications · Open the app), the beta note, and the official-sources line. After 1.0: the Developer ID team name, "notarized by Apple" and a link to the release's SHA-256.
-- **Changelog:** each release is a `.release` card with the version in a mono `.tag` and the date in `--text-2`.
-- **Guides:** reading layout. Tirekick's meetup checklist keeps printing clean (the shared print rules strip stages and shadows).
-- **Support and legal:** reading layout only. Support repeats the official-sources line under its h1.
-- **404:** the brand's world panel at 240px tall with its object, one line in the product's voice, and a Home button.
+Also keep: visible 3px focus rings, 44px hit areas, content visible without JS (`.reveal` hides only after
+`motion.js` adds `.reveal-io`), no `style=""` (stagger uses `:nth-child`), and every image with `width`/`height`.
 
-### 2.7 What this supersedes in MOTION.md
+### 2.8 What this supersedes in MOTION.md
 
-MOTION.md stays authoritative for motion: the hero sequences, tilt, glare, reveal, flips, `motion.js` and the
-Reduce Motion table are unchanged and referenced by section below. Where the two conflict, this file wins:
+MOTION.md stays authoritative for motion: tilt, glare, reveal, flips, `motion.js`, the Reduce Motion table and the
+performance rules are unchanged and referenced by section. Where the two conflict, this file wins:
 
 | MOTION.md | Now |
 |---|---|
-| §1.7 `--z1`, `--z2`, `--glare` values, and the existing `--shadow` | ink-tinted values in each brand's `:root` (§4.1); the names are unchanged, so the motion CSS keeps working |
-| §1.7 `.button { transition: background-color .2s, scale … }` | §2.4's transition line (adds `translate`) |
-| §1.7 "light then dark" `:root` blocks | Whydunit unchanged; Tirekick's second block is `prefers-contrast: more` |
-| §2.3 `.cloud { fill: var(--glare) }` | `fill: url(#g-cloud)`, a volumetric cloud (Whydunit §4.3) |
-| §4.3 `.scene` side-by-side grid at ≥900px, `.beam` blue, `.lid`/`.deck` flat fills | overlap composition at ≥1100px, lime beam, graphite and aluminium materials (Tirekick §4.3) |
-| §5.1 `TileButtonStyle` | `KeyCapStyle` (Tirekick §5.2), same tilt, press and bounce behaviour |
-| §3 "no card backgrounds on content", "no custom glass" (BUILD_PLAN quotes) | amended as listed in §9 of each brand |
+| §1.7 `--z1`, `--z2`, `--glare`, `--shadow` values | §2.4 recipes with each brand's ink; names unchanged, so the motion CSS keeps working |
+| §1.7 `.button { transition: … }` | §2.5's button (adds `translate` on `:active`, shadow swapped instantly) |
+| §2.1 Whydunit story (cloud, rising files, check) | the diorama sequence, 2.0 s (Whydunit §4.3); `.sky`, `.cloud`, `.cloud-ok`, `.doc`, `.ghost` and `upload` are deleted |
+| §2.3 `.cloud { fill: … }` | gone with the cloud |
+| §4.1 Tirekick story (chips fly from the screen to the card) | laser snaps on, lid opens, card deals in, beam sweeps the card, verdict settles; 2.45 s (Tirekick §4.3). The lid and card-deal keyframes are kept and retimed |
+| §4.3 `--tread` floor, `.horizon` bloom, blue `.beam` | perspective floor grid, 1px lime laser with a tight spill, lime beam (Tirekick §4.3) |
+| §5.1 `TileButtonStyle` | `KeyCapStyle` with a real side wall (Tirekick §5.2); same tilt, press and bounce |
+| §3.4 Summary hero "lands" as a card | the verdict plate (a porcelain surface) lands with the same `flipIn`; the Form is gone (Whydunit §5.2) |
+| §1.8 `Sky`/`Bay` as the only backgrounds | `Sky` grows a sun (Whydunit §5.1); `Bay` gets a per-step key light and loses its grey ramp in light (Tirekick §5.1) |
+
+New motion, both within MOTION §1.1's rules: a notification slides in from the right with `--ease-spring`; key-caps
+sink 2px on `:active` with the translate transitioned and the shadow swapped; Tirekick's key light moves 0.35 s per
+step. Reduce Motion shows final states (MOTION §1.5) throughout.
 
 ## 3. Shared app foundation (SwiftUI; written, not compiled)
 
-**What stays native:** `NavigationSplitView`, `Table`, `Form(.grouped)`, the toolbar, sheets, Settings, system
-materials, the user's accent, and on macOS 26 the SDK's automatic Liquid Glass on toolbars and sidebars.
-**What is added:** the brand's static wash, icon wells, tags, key-caps, one lifted object per stage screen, and (Tirekick)
-a step bar. Every API below is macOS 13 so both apps can share it; Whydunit-only additions are in its §5.
+**Material hierarchy, in order:** the system window (sidebars and toolbars stay system; on macOS 26 the SDK makes
+them glass by itself) → a static wash at the top of stage screens (`Sky` / `Bay`) → porcelain surfaces for content
+groups → controls. One accent; severity only as symbol tint, tag fill and dot. One lifted object per stage screen.
+Nothing moves at idle (MOTION §1.6: zero CPU, springs only, at most 8 `HoverTilt` on screen).
 
-### 3.1 `App/DesignSystem/Tokens.swift` additions (both apps)
+### 3.1 `App/DesignSystem/Tokens.swift` additions (identical in both apps; macOS 13 APIs only)
 
 ```swift
 extension View {
-    /// A symbol in a recessed, tinted squircle: the site's icon well. Pure fills, so ImageRenderer-safe.
-    func well(_ tint: Color, size: CGFloat = 44) -> some View {
-        let shape = RoundedRectangle(cornerRadius: size * 0.28, style: .continuous)
-        return frame(width: size, height: size)
-            .background(shape.fill(tint.opacity(0.16).gradient))          // Color.gradient: macOS 13
-            .overlay(shape.strokeBorder(tint.opacity(0.24), lineWidth: 0.5))
-    }
+    /// Porcelain surface: white (a 5.5% white lift in dark), a hairline rim, a tight contact shadow plus a wide soft
+    /// one tinted with the brand's ink. Concentric: pass the outer radius; content inside pads by radius - inner.
+    /// Replaces grey grouped Form cells and `.quaternary` slabs. Never glass, never on a single row.
+    func surface(_ radius: CGFloat = 16) -> some View { modifier(Surface(radius: radius)) }
+}
 
-    /// A raised object (app icon, laptop, report card; never a row): a tight contact shadow plus a wide soft one,
-    /// like the site's --shadow. compositingGroup so glyphs don't cast their own shadows (MOTION.md §1.4).
-    func lifted() -> some View {
-        compositingGroup()
-            .shadow(color: .black.opacity(0.10), radius: 1.5, y: 1)
-            .shadow(color: .black.opacity(0.20), radius: 24, y: 14)
+private struct Surface: ViewModifier {
+    let radius: CGFloat
+    @Environment(\.colorScheme) private var scheme
+    @Environment(\.colorSchemeContrast) private var contrast
+
+    func body(content: Content) -> some View {
+        let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
+        let dark = scheme == .dark, strong = contrast == .increased
+        content
+            .background(dark ? AnyShapeStyle(Color.white.opacity(0.055)) : AnyShapeStyle(.background), in: shape)
+            .overlay { shape.strokeBorder(strong ? Color.primary.opacity(0.5) : Color.primary.opacity(dark ? 0.10 : 0.07), lineWidth: strong ? 1 : 0.5) }
+            .compositingGroup()   // glyphs inside don't cast their own shadows (MOTION §1.4)
+            .shadow(color: .black.opacity(dark ? 0.35 : 0.05), radius: 1, y: 1)
+            .shadow(color: Brand.ink.opacity(dark ? 0.5 : 0.10), radius: 16, y: 8)
     }
 }
 
-/// A count or a word in a tinted capsule. Colour sits in the dot and the fill; the text stays primary, so it always
-/// has full contrast ("only symbols carry colour"). Increase Contrast adds a stroke.
-struct Tag: View {
-    let text: String
-    var tint: Color = .secondary
+/// An object standing on a glossy floor: the view, its mirror fading out over 45% of its height, and a still
+/// contact shadow. Drawn once. Pass a stateless view: it is drawn twice. None of the mirror under Reduce Transparency.
+struct OnFloor<Content: View>: View {
+    var height: CGFloat
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    var body: some View {
+        VStack(spacing: 2) {
+            content
+            if !reduceTransparency {
+                content
+                    .scaleEffect(x: 1, y: -1)
+                    .frame(height: height * 0.45, alignment: .top).clipped()
+                    .mask(LinearGradient(colors: [.black.opacity(0.22), .clear], startPoint: .top, endPoint: .bottom))
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
+            }
+        }
+        .background(alignment: .center) {
+            Ellipse().fill(.black.opacity(0.16)).frame(width: height * 0.7, height: height * 0.08).blur(radius: 6)
+                .offset(y: height * 0.02)   // VERIFY by eye: the ellipse should sit at the object's base
+                .accessibilityHidden(true)
+        }
+    }
+}
+
+/// The key light under a lifted object: a pool of light and a thin bright line. Static; drawn once per size.
+/// `soft`: Whydunit's dawn bloom. Tirekick passes false: a hard line with a tight spill. Decorative, hidden from VoiceOver.
+struct Horizon: View {
+    var tint: Color
+    var width: CGFloat = 420
+    var soft = true
     @Environment(\.colorSchemeContrast) private var contrast
 
     var body: some View {
-        HStack(spacing: 5) {
-            Circle().fill(tint).frame(width: 6, height: 6).accessibilityHidden(true)
-            Text(text).font(.caption.weight(.semibold)).monospacedDigit()
+        ZStack {
+            if contrast != .increased {
+                RadialGradient(colors: [tint.opacity(soft ? 0.42 : 0.22), tint.opacity(soft ? 0.10 : 0), .clear],
+                               center: .center, startRadius: 0, endRadius: width / 2)
+                    .frame(width: width, height: width * (soft ? 0.32 : 0.14))
+            }
+            LinearGradient(colors: [.clear, tint, .white.opacity(0.9), tint, .clear], startPoint: .leading, endPoint: .trailing)
+                .frame(width: width * 0.86, height: 1)
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 3)
-        .background(tint.opacity(0.14), in: Capsule())
-        .overlay(Capsule().strokeBorder(contrast == .increased ? Color.primary.opacity(0.4) : tint.opacity(0.3), lineWidth: contrast == .increased ? 1 : 0.5))
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+}
+
+/// A small-caps label over a big number. One VoiceOver element. Whydunit passes .rounded, Tirekick .monospaced.
+struct Metric: View {
+    let label: String
+    let value: String
+    var unit: String? = nil
+    var dot: Color? = nil
+    var design: Font.Design = .rounded
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(label).font(.caption.weight(.semibold).smallCaps()).foregroundStyle(.secondary)   // VERIFY small caps with SF
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                if let dot { Circle().fill(dot).frame(width: 6, height: 6).accessibilityHidden(true) }
+                Text(value).font(.system(size: 26, weight: .semibold, design: design)).monospacedDigit()
+                if let unit { Text(unit).font(.callout.weight(.medium)).foregroundStyle(.secondary) }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
     }
 }
 ```
 
-### 3.2 Performance and accessibility (both apps)
+`Brand.ink`: Whydunit navy `Color(red: 0.06, green: 0.11, blue: 0.24)`; Tirekick olive-black `Color(red: 0.09,
+green: 0.10, blue: 0.04)`. `Tag`, `well`, `lifted`, `HoverTilt`, `flipIn`/`flip` and `cardSwap` are unchanged.
 
-- Everything added is static fills and gradients plus at most 6 `lifted()` shadows per screen. Idle CPU stays 0%;
-  motion follows MOTION.md §3/§5 exactly, and the only loops are the scan glyph and the laptop beam.
-- Wells hide duplicate symbols from VoiceOver; `SeverityIcon`/`VerdictIcon` keep speaking their words; combined
-  elements are unchanged. Differentiate Without Color still shows the words.
-- Reduce Transparency turns materials solid by itself. Increase Contrast: tags and wells get a 1pt primary stroke,
-  and the wash falls back to the plain window background.
-- No `drawingGroup()`, no animated `blur` or `shadow`. `ReportCardView` (the PNG) gets no effects around it.
+**Type in the apps:** SF only. Stage headlines `.system(size: 28–30, weight: .semibold)` with `.tracking(-0.5)`
+(Tirekick's Welcome keeps `.heavy` + `.width(.expanded)`, VERIFY on macOS 13); plate titles 22pt semibold; rows 13pt
+with a 12pt secondary line; every number `.monospacedDigit()`; big metrics 26pt semibold rounded (Whydunit) or
+monospaced (Tirekick); small-caps labels only on metric labels, inspector and section headers. Radii: 18 (plates),
+14 (tiles), 12 (rows and inner groups), 8 (chips), capsules for buttons.
 
-## 4. Whydunit website: Sky
+### 3.2 The controls layer: glass only here
+
+Whydunit has no floating bar, so it adds nothing; the macOS 26 SDK draws its sidebar and toolbar glass by itself.
+Tirekick's `FloatingBar` and `StepBar` call this, in `Compat.swift` (the only file allowed `#available`,
+BUILD_PLAN §10):
+
+```swift
+extension View {
+    /// Liquid Glass on macOS 26; a material with a hairline before. Floating bars and the StepBar only, never content.
+    @ViewBuilder func barSurface() -> some View {
+        if #available(macOS 26, *) {
+            glassEffect(.regular, in: Capsule())                       // VERIFY: glassEffect(_:in:) signature, Xcode 26 SDK
+        } else {
+            background(.regularMaterial, in: Capsule())
+                .overlay(Capsule().strokeBorder(Color.primary.opacity(0.1), lineWidth: 0.5))
+                .shadow(color: .black.opacity(0.14), radius: 18, y: 8)
+        }
+    }
+}
+```
+
+Materials and glass handle Reduce Transparency themselves.
+
+### 3.3 Performance and accessibility (both apps)
+
+- Everything added is static: `surface`, `OnFloor`, `Horizon`, `Sky`/`Bay` draw once per size. At most 6 shadows
+  per screen, no `drawingGroup()` over text. Idle CPU stays 0%; the only loops are `ScanGlyph` and Tirekick's
+  checking beam, inside their scanning views.
+- Decorative layers (`Horizon`, the mirror, contact shadows) are `accessibilityHidden`. Labels, traits and combined
+  elements from MOTION §1.5 are unchanged; severity always carries its word.
+- Increase Contrast: surfaces get a 1pt primary stroke, `Horizon` loses its pool, `Sky`/`Bay` become the plain
+  window. Reduce Transparency: no mirrors, materials go solid. Reduce Motion: MOTION §1.5 exactly.
+
+## 4. Whydunit website: Daylight
 
 ### 4.1 Tokens (replace the two `:root` blocks in `site/static/styles.css`)
 
 ```css
 :root {
   color-scheme: light dark;
-  /* contrast(), light, worst of bg / bg-alt / card: text 16.8:1, text-2 5.75:1, accent 5.82:1;
-     on-button on button 5.97:1, on hover 7.62:1. */
-  --bg: #fbfcfe;
-  --bg-alt: #f1f4f9;
-  --card: #ffffff;
-  --text: #0b1324;
-  --text-2: #556074;
-  --accent: #1d54d4;
-  --button: #2457e0;
-  --button-hover: #1c48c2;
-  --on-button: #ffffff;
-  --line: #dce2ec;
-  --header: rgb(251 252 254 / .72);
-  --ink: 16 28 60;                    /* every shadow and hairline is this navy at an alpha, never grey */
+  /* contrast(), light, worst of bg / bg-alt / card: text 16.4:1, text-2 5.34:1, accent 5.51:1;
+     white on button 5.97:1, on hover 7.62:1. */
+  --bg: #f4f6f9; --bg-alt: #eaeef3; --card: #ffffff;
+  --text: #0a0f1c; --text-2: #586173; --accent: #1d54d4;
+  --button: #2457e0; --button-hover: #1c48c2; --on-button: #ffffff;
+  --line: #dde2ea; --header: rgb(255 255 255 / .72); --hi: rgb(255 255 255 / .9);
+  --ink: 16 28 60;                                   /* navy: every shadow and hairline */
   --ok: #34c759; --warn: #ff9f0a; --bad: #ff3b30;
-  /* The world: a daylight sky, only behind the hero scene, the finale and the download icon. */
-  --sky-1: #8ec2ff; --sky-2: #c9e2ff; --sky-3: #edf5ff;
-  --cloud: rgb(255 255 255 / .95);
-  --haze: rgb(255 255 255 / .85);
-  --glow: rgb(36 87 224 / .22);       /* brand light behind the object */
-  --orb-a: #6fb2ff; --orb-b: #2a3ab8; /* step coins */
-  /* Key-caps: everything you can press or pick up. */
-  --cap-top: #ffffff; --cap-bot: #f5f7fb;
-  --cap: inset 0 1px 0 rgb(255 255 255 / .9), 0 0 0 1px rgb(var(--ink) / .10), 0 1px 2px rgb(var(--ink) / .08), 0 6px 16px -8px rgb(var(--ink) / .22);
-  /* Depth (MOTION §1.4 names, ink-tinted values): z1 hugs, z2 cards, shadow floats. */
-  --z1: 0 0 0 1px rgb(var(--ink) / .06), 0 1px 2px rgb(var(--ink) / .05), 0 4px 12px -2px rgb(var(--ink) / .06);
-  --z2: inset 0 1px 0 rgb(255 255 255 / .9), 0 0 0 1px rgb(var(--ink) / .07), 0 2px 4px rgb(var(--ink) / .05), 0 14px 32px -10px rgb(var(--ink) / .18);
-  --shadow: 0 0 0 .5px rgb(var(--ink) / .22), 0 2px 6px rgb(var(--ink) / .08), 0 24px 48px -12px rgb(var(--ink) / .28), 0 60px 120px -30px rgb(var(--ink) / .3);
-  --glare: rgb(36 87 224 / .08);
-  /* Grain: 6% grey fractal noise, about 420 bytes, only on big gradients (stops 8-bit banding). */
-  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='.33 .33 .33 0 0 .33 .33 .33 0 0 .33 .33 .33 0 0 0 0 0 0 .06'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
-  --font-num: ui-rounded, var(--font);       /* SF Pro Rounded for big friendly numerals (Health-style) */
-  --r-s: 10px; --r-m: 14px; --r-l: 20px; --r-xl: 28px; --r-btn: 999px;
-  /* MOTION.md §1.7: --ease-*, --t-*, --persp-* unchanged, here. */
-  /* Window illustration (role="img", not measured). */
-  --win-bg: #f4f6fa; --win-bar: #eef1f6; --win-bar-top: #f8f9fc; --win-side: #e6ebf3; --win-group: #ffffff;
-  --win-line: rgb(0 0 0 / .08); --win-sel: #2457e0; --win-icon: #2457e0;
+  /* The world, "iCloud dawn": deep cobalt sky, pale middle, one warm horizon glow (the key light), cloud banks. */
+  --wp-1: #1a47c9; --wp-2: #3f82f2; --wp-3: #9cc8ff; --wp-4: #fbe3cf;
+  --wp-hi: rgb(160 205 255 / .9); --wp-cloud: rgb(255 255 255 / .78); --wp-glow: rgb(255 214 170 / .7);
+  --wp-ink: 6 24 80; --glass-lite: rgb(255 255 255 / .82); --menubar: rgb(255 255 255 / .22);
+  --cap-top: #ffffff; --cap-bot: #f4f6fa;
+  --cap: inset 0 1px 0 var(--hi), 0 0 0 .5px rgb(var(--ink) / .18), 0 1px 2px rgb(var(--ink) / .08), 0 4px 10px -4px rgb(var(--ink) / .12);
+  --z1: 0 0 0 .5px rgb(var(--ink) / .12), 0 1px 2px rgb(var(--ink) / .05);
+  --z2: inset 0 1px 0 var(--hi), 0 0 0 .5px rgb(var(--ink) / .12), 0 2px 4px rgb(var(--ink) / .04), 0 12px 28px -12px rgb(var(--ink) / .16);
+  --shadow: 0 0 0 .5px rgb(var(--ink) / .22), 0 2px 4px rgb(var(--ink) / .06), 0 24px 48px -16px rgb(var(--ink) / .30), 0 64px 128px -32px rgb(var(--ink) / .34);
+  --shadow-win: 0 0 0 .5px rgb(0 0 0 / .28), 0 2px 6px rgb(0 0 0 / .08), 0 28px 56px -12px rgb(var(--wp-ink) / .45), 0 72px 140px -24px rgb(var(--wp-ink) / .5);
+  --glare: rgb(36 87 224 / .07);
+  --grain: /* the existing inline feTurbulence SVG with the last matrix value .04 (4% on light) */;
+  --font, --font-display, --font-mono: as §2.2;  --font-num: ui-rounded, var(--font);
+  --r-s: 8px; --r-m: 12px; --r-l: 18px; --r-xl: 28px; --r-btn: 999px;
+  /* motion tokens unchanged (MOTION §1.2) */
+  /* Window replica, macOS 26 light (role="img", not measured). */
+  --win-bg: #ffffff; --win-side: #f3f4f6; --win-group: #ffffff; --win-row-alt: #f7f8fa;
+  --win-line: rgb(0 0 0 / .08); --win-sel: #2457e0;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    /* dark (worst): text 15.8:1, text-2 7.0:1, accent 7.3:1; on-button on button 5.19:1, on hover 6.49:1. */
-    --bg: #090d16; --bg-alt: #0e1320; --card: #141a28;
-    --text: #f1f4f9; --text-2: #9aa5b9;
-    --accent: #7ea7ff; --button: #3461ea; --button-hover: #2a52d2;
-    --line: #222b3d; --header: rgb(9 13 22 / .72);
-    --ink: 0 0 0;
+    /* worst: text 15.8:1, text-2 6.84:1, accent 7.7:1; white on button 5.09:1, on hover 6.23:1 */
+    --bg: #0b0d12; --bg-alt: #111419; --card: #171a21;       /* graphite, not navy: crafted, not "SaaS dark" */
+    --text: #f2f4f8; --text-2: #9aa3b2; --accent: #86abff;
+    --button: #3563ea; --button-hover: #2b55d6;
+    --line: #262b35; --header: rgb(17 20 25 / .72); --hi: rgb(255 255 255 / .06); --ink: 0 0 0;
     --ok: #30d158; --warn: #ff9f0a; --bad: #ff453a;
-    /* The same sky after sunset. */
-    --sky-1: #0b1433; --sky-2: #1a2658; --sky-3: #2e3478;
-    --cloud: rgb(150 160 255 / .22); --haze: rgb(126 167 255 / .22); --glow: rgb(52 97 234 / .38);
-    --cap-top: #1b2232; --cap-bot: #151b29;
+    /* The same sky at night: ink-blue, a violet horizon, faint cloud banks. */
+    --wp-1: #04070f; --wp-2: #0b1a45; --wp-3: #1f3c8f; --wp-4: #3a2c6e;
+    --wp-hi: rgb(90 130 255 / .35); --wp-cloud: rgb(150 170 255 / .14); --wp-glow: rgb(170 120 255 / .35);
+    --wp-ink: 0 0 0; --glass-lite: rgb(40 42 48 / .82); --menubar: rgb(0 0 0 / .28);
+    --cap-top: #1d212a; --cap-bot: #171a22;
     --cap: inset 0 1px 0 rgb(255 255 255 / .07), 0 0 0 1px rgb(255 255 255 / .09), 0 6px 16px -8px rgb(0 0 0 / .7);
-    --z1: 0 0 0 1px rgb(255 255 255 / .07), 0 4px 12px -2px rgb(0 0 0 / .5);
-    --z2: inset 0 1px 0 rgb(255 255 255 / .05), 0 0 0 1px rgb(255 255 255 / .08), 0 14px 32px -10px rgb(0 0 0 / .7);
-    --shadow: 0 0 0 1px rgb(255 255 255 / .1), 0 24px 48px -12px rgb(0 0 0 / .7), 0 60px 120px -30px rgb(0 0 0 / .8);
-    --glare: rgb(255 255 255 / .1);
-    --win-bg: #1e1e20; --win-bar: #262628; --win-bar-top: #2a2d35; --win-side: #2a2a2d; --win-group: #2c2c2e;
-    --win-line: rgb(255 255 255 / .09); --win-sel: #3461ea; --win-icon: #3461ea;
+    --z1: 0 0 0 1px rgb(255 255 255 / .07), 0 1px 2px rgb(0 0 0 / .5);
+    --z2: inset 0 1px 0 var(--hi), 0 0 0 1px rgb(255 255 255 / .08), 0 12px 28px -12px rgb(0 0 0 / .7);
+    --shadow: 0 0 0 1px rgb(255 255 255 / .1), 0 24px 48px -16px rgb(0 0 0 / .7), 0 64px 128px -32px rgb(0 0 0 / .8);
+    --glare: rgb(255 255 255 / .08);
+    --grain: /* 6% */;
+    --win-bg: #1e1f22; --win-side: #26272b; --win-group: #2a2b2f; --win-row-alt: #232427;
+    --win-line: rgb(255 255 255 / .08); --win-sel: #3563ea;
   }
 }
 ```
 
-`layout.html`: `theme-color` `#fbfcfe` (light) and `#090d16` (dark).
+`layout.html`: `theme-color` becomes `#f4f6f9` and `#0b0d12`; add the font preload (§2.2).
 
-### 4.2 Home page, section by section
+### 4.2 Home page, section by section (11 blocks, down from 13)
 
-| # | Section | Composition | Motion (MOTION.md) |
-|---|---|---|---|
-| 0 | Header pill | icon, wordmark · How it works, Safety, FAQ, Support · **Source** (secondary small) · **Download** (small) | none |
-| 1 | Hero | centered: kicker chip, two-tone h1 (the promise; the wordmark lives in the nav), lede, Download + View source, facts line; then the **sky stage** (§4.3) | §2.1 sequence once, 5° tilt, phone scroll lean |
-| 2 | Proof strip | `dl.proof`, 4 cells in `--font-num`: **0 bytes** "of file contents read" · **SHA-256** "on every backup copy" · **1 at a time** "retries, each re-checked first" · **1 server** "it ever talks to: its update feed" | reveal |
-| 3 | Finder says / Whydunit says (replaces "Sound familiar?") | `.split`: eyebrow, h2 "Finder shows a status. *Whydunit tells you why.*", lede; right: one `.pair` (Finder row "Thesis.pages · Waiting to upload…" as the claim, the finding card "12 files haven't uploaded to iCloud (1.2 GB)" with a `.tag.warn`, one line, and two fake key-caps "Back Up…" "Retry Upload…") | the finding card: 7° tilt, glare, reveal |
-| 4 | How it works | 4 coin orbs on a rail (§4.4) | reveal, coin turn |
-| 5 | Three fixes, each one safe | `.stack` of 3 `.feature` cards: Back Up, Retry Upload, Restart iCloud Sync, each with a mini sheet mock on a sky well (§4.4) | sticky stacking (CSS only) |
-| 6 | Built to never lose a file | 6 `.card`s with `.well` icons; "Trash, never delete" first | reveal, tilt, glare |
-| 7 | Free | one centered card: a big rounded "Free", the line, the checklist | reveal only |
-| 8 | Questions | `.faq`: sticky two-tone head left, `<details>` cards right | unfold |
-| 9 | Finale | `.finale .panel` on the sky: the icon floating with a halo, "See what's stuck. *It's free.*", the button, facts | icon tilt 12° |
-| 10 | Footer | slab, columns, official-sources line, trademark line | none |
+1. **Header pill** (§2.5): 22px icon and wordmark; How it works, Safety, FAQ at 14px/500 `--text-2`; a secondary
+   key-cap "Source" and a 36px primary "Download".
+2. **Hero** (§4.3): centered copy, then the desktop diorama.
+3. **Proof strip**, hairlines only: "0 bytes · of file contents read", "SHA-256 · on every backup copy",
+   "1 at a time · retries, each re-checked", "1 server · its update feed". Numerals in display 600.
+4. **"Finder shows a status. Whydunit tells you why."** `.sec-head` left; right, a 320px-tall wallpaper tile
+   (18px radius) holding a Finder list row (file glyph, name, dotted cloud, "Waiting to upload") with the Whydunit
+   finding card overlapping it by −30px, 10% to the right, `--shadow`, `data-tilt` 7°.
+5. **How it works.** Four key-cap numerals (44px, 12px radius, `--cap-top`/`--cap-bot`, `--cap`, display 600 17px)
+   on a 1px hairline rail that fades at both ends. The coin-turn reveal stays (MOTION §2.4). Copy unchanged.
+6. **Three fixes** (sticky stacking cards, tops 88/102/116px, the mechanism unchanged). Each card: white, 28px
+   radius, 10px padding, `--z2`; media on 7 of 12 columns: a wallpaper well (§4.1 gradient, 18px radius, always the
+   brand world) holding the existing `.sheet` replica with `--shadow-win`; text on 5 of 12: a mono index "01", the
+   feature title in display, one paragraph, one 13px mono guarantee line with a green 6px dot ("Stops at the first
+   SHA-256 mismatch", "One item at a time, backup first", "Only after you say yes"). The covered card dims to
+   `opacity .6` through `animation-timeline: view()` only where supported and without reduced motion. Delete the
+   icon wells in the text column.
+7. **Safety: "Built to never lose a file."** Two columns, 5 and 7. Left: sticky head and lede, then a mono receipt
+   card (`--bg-alt`, 12px radius): "CI fails any build whose code calls `removeItem`, `unlink`, `rmdir` or `rm`."
+   (true: CI checks the first three safety rules; copy owner confirms wording). Right: the 6-rule `.rules` ledger,
+   each with a trailing mono chip: `trashItem`, `read-only`, `SHA-256`, `1 feed`, `activity log`, `no telemetry`.
+   This replaces the 6 icon cards and the "Free" card.
+8. **Real screens.** The `.film` strip (§2.5, §2.6): Summary, a finding page, the Back Up sheet; `tabindex="0"`,
+   `aria-label="Screenshots"`. Caption: "Real screens, captured by CI from the app with sample data."
+9. **FAQ.** Sticky head left (5), the grouped `.faq-list` right (7). "Is it really free?" absorbs the old Free card.
+10. **Finale.** A 28px-radius wallpaper panel, 72px top padding: the 128px icon with the floor reflection and the
+    existing 12° pointer tilt, "See what's stuck. It's free." in display, the primary button and the trust line.
+11. **Footer.** The `--bg-alt` slab, a 0.5px ink hairline on top, columns unchanged, the version in mono, and the
+    official line: "The only official sources are <baseURL> and github.com/EverydayOpen/whydunit releases. Builds are
+    Developer ID signed and notarized."
 
-No `.band` sections. The sky appears in 1, 5 (wells) and 9 only.
+### 4.3 Hero: the desktop diorama (the 3D product scene)
 
-### 4.3 Hero: the 3D scene in a sky frame
+**Copy stack** (nothing here moves, MOTION §1.1 rule 1): kicker pill; h1 (display ladder, second clause `.dim`,
+copy unchanged); lede (max 34em); the CTA row (primary key-cap "Download free" with the download glyph and the
+hairline `.sep`, secondary "View source"); trust line 13px: "Free · No account · macOS 15 or later · Apple silicon
+and Intel · Signed and notarized".
 
-The MOTION.md §2.1 sequence is kept exactly (window rises, files rise into the cloud, check lands, chips pop, then
-5° tilt). It gains a world and a fourth plane.
+**DOM.** `.stage.daylight` is up to 1240px wide, 28px radius, 48px below the trust line. The `.window` figure and
+its `.win-*` markup stay; the cloud, docs, check and ghost are deleted; the menu bar, Finder and notification are
+added. The replica copy is Demo.swift's sample (10 items, 2.1 GB, 4,213 checked, 4 need attention), as in the CI
+capture.
 
 ```html
-<section class="hero" aria-labelledby="hero-h">
-  <div class="wrap center hero-copy">
-    <p class="kicker"><svg aria-hidden="true"><use href="#i-cloud"/></svg>For iCloud Drive on macOS {{minMacOS}} or later</p>
-    <h1 id="hero-h">See why your files won't upload. <span class="dim">Fix them without losing a thing.</span></h1>
-    <p class="lede center">Whydunit finds iCloud Drive files that are stuck, explains why in plain English, and backs them up before it changes anything.</p>
-    <p class="actions">
-      <a class="button" href="/download/"><svg aria-hidden="true"><use href="#i-down"/></svg><span class="sep" aria-hidden="true"></span>Download free</a>
-      <a class="button secondary" href="https://github.com/{{releasesRepo}}">View source</a>
-    </p>
-    <p class="facts">Free · No account · macOS {{minMacOS}} or later · Apple silicon and Intel</p>
+<div class="stage daylight" data-tilt>
+  <p class="menubar" aria-hidden="true"><b>Whydunit</b> File Edit View Window Help <span>Tue 9:41</span></p>
+  <div class="scene">
+    <figure class="finder" aria-hidden="true">…a small Finder window: 4 rows, each with a dotted cloud and "Waiting to upload"…</figure>
+    <figure class="window" role="img" aria-label="…unchanged…">…the Tahoe replica of Summary (§4.4)…</figure>
+    <p class="note" aria-hidden="true"><img src="/icon.png" width="32" height="32" alt=""><b>Whydunit</b><time>now</time><span>10 copies verified with SHA-256</span></p>
   </div>
-  <div class="wide">
-    <div class="stage daylight" data-tilt>
-      <div class="scene">
-        <!-- MOTION.md §2.2 unchanged: .sky (cloud, 3 .doc, .cloud-ok) … -->
-        <div class="ghost" aria-hidden="true"><i></i><i></i><i></i></div>   <!-- the Finder window the user already knows -->
-        <figure class="window" role="img" aria-label="…unchanged…">…unchanged…</figure>
-        <!-- … the two .chip paragraphs -->
-      </div>
-    </div>
-    <p class="small dim center">Illustration with sample data</p>
-  </div>
-</section>
+</div>
+<p class="caption">Illustration with sample data</p>
 ```
 
-Add to the sprite: `<radialGradient id="g-cloud" cx=".5" cy=".35" r=".7"><stop offset="0" stop-color="#fff"/><stop offset=".55" stop-color="#bfe0ff"/><stop offset="1" stop-color="#4f8dff" stop-opacity=".35"/></radialGradient>`.
+**Planes**, back to front, in one `perspective: var(--persp-scene)` (MOTION §1.2):
+
+| Plane | Z | What it is |
+|---|---|---|
+| Wallpaper | still, outside the scene | `::before` covers `inset: 0 0 16%`, so the window's lower 16% hangs off the wallpaper onto paper: the depth cue a flat frame can't give. The 28px `.menubar` (`--menubar`, white 13px/500, no Apple mark) sits on it. |
+| Finder window | −120px | Left 2%, top 16%, 38% wide. The problem. |
+| Whydunit window | 0 | The Tahoe replica, centered, `--shadow-win`. The diagnosis. |
+| Notification | +110px | Top right, 340×72, 18px radius, `--glass-lite` with a rim and a top highlight, exactly where macOS puts banners. The safe fix. |
 
 ```css
-/* Sky stage (DESIGN.md §4.3): the window's lower edge hangs off the sky onto paper, like a product shot. */
-.hero { overflow: clip; padding-top: clamp(64px, 9vw, 104px); }
-.hero .lede { margin: 20px auto 0; }
-.stage.daylight { margin-top: 56px; padding: 0 clamp(12px, 5vw, 72px); }
-.stage.daylight::before { inset: 0 0 14%;
+.stage.daylight { position: relative; margin: 48px auto 0; max-width: 1240px; padding: 44px 5% 0; perspective: var(--persp-scene); perspective-origin: 50% 20%; }
+.stage.daylight::before { content: ""; position: absolute; z-index: -2; inset: 0 0 16%; border-radius: var(--r-xl);
   background: var(--grain),
-    radial-gradient(55% 45% at 80% 8%, var(--haze), transparent 70%),        /* sun haze, top right */
-    radial-gradient(34% 22% at 12% 100%, var(--cloud), transparent 72%),     /* cloud bank along the bottom */
-    radial-gradient(40% 26% at 46% 104%, var(--cloud), transparent 72%),
-    radial-gradient(30% 20% at 88% 100%, var(--cloud), transparent 72%),
-    linear-gradient(var(--sky-1), var(--sky-2) 55%, var(--sky-3)); }
-.cloud { fill: url(#g-cloud); }                                   /* MOTION's back cloud, now volumetric */
-.sky::before { content: ""; position: absolute; inset: -40% -30%; background: radial-gradient(closest-side, var(--glow), transparent); }   /* bloom behind it */
-/* Fourth plane: a ghost Finder window with orange "Waiting to upload" dots, behind the app window. */
-.ghost { position: absolute; left: 3%; top: 20%; width: 36%; aspect-ratio: 4 / 3; padding: 34px 14px 0; border-radius: 10px;
-  background: var(--win-bg); box-shadow: var(--z2); opacity: .75; transform: translateZ(-80px); pointer-events: none; }
-.ghost i { display: block; height: 10px; margin: 10px 0; border-radius: 4px;
-  background: linear-gradient(90deg, var(--line) 0 70%, transparent 0 88%, var(--warn) 0 92%, transparent 0); }
-@media (max-width: 640px) { .ghost { display: none; } }
-/* Window chrome: lit title bar, the app's own sky wash at the top of the content, accent selection, a severity well. */
-.win-bar { background: linear-gradient(var(--win-bar-top), var(--win-bar)); }
-.win-main { background: linear-gradient(color-mix(in srgb, var(--button) 8%, var(--win-bg)), var(--win-bg) 160px); }
-.side-row.selected { background: var(--win-sel); color: #fff; }
-.side-row.selected svg, .side-row.selected .badge { color: #fff; }
-.win-hero svg { box-sizing: content-box; padding: 9px; border-radius: 12px; background: color-mix(in srgb, var(--warn) 16%, var(--win-group)); }
-.win-row { border-left: 3px solid var(--warn); padding-left: 11px; }
-.win-row .tag { flex: none; }                                     /* trailing count, e.g. <span class="tag warn">14</span> */
-.chip { border-radius: var(--r-m); background: linear-gradient(var(--cap-top), var(--cap-bot)); box-shadow: var(--cap), 0 18px 36px -12px rgb(var(--ink) / .35); }
-```
-
-Planes, front to back: chips (+90/+60, move most under tilt), the window (0), the ghost (−80), the cloud and files
-(−160). The ghost is a child of the `preserve-3d` `.scene`, so its `opacity` flattens nothing (MOTION §1.6). At rest
-the window is flat and sharp; the sky gives the depth. Prototype notes: in dark mode the dusk sky and the light rims
-draw the window's edges; every colour must come from tokens, because literal `#fff` fills broke dark mode.
-
-### 4.4 The new sections
-
-```css
-/* Finder says / Whydunit says */
-.split { display: grid; gap: 40px; align-items: center; }
-@media (min-width: 900px) { .split { grid-template-columns: 5fr 7fr; } }
-.split .claim { display: flex; align-items: center; gap: 10px; font-style: normal; }   /* a Finder row: doc icon, name, dotted cloud, status */
-.split .finding .caps { display: flex; gap: 8px; margin-top: 12px; }
-.split .finding .caps span { padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; background: linear-gradient(var(--cap-top), var(--cap-bot)); box-shadow: var(--cap); }
-
-/* How it works: coin orbs on a rail (MaCursor). MOTION's coin animation still runs on li::before. */
-.steps { position: relative; }
-@media (min-width: 900px) { .steps::before { content: ""; position: absolute; top: 24px; left: 12%; right: 12%; height: 2px; background: linear-gradient(90deg, transparent, var(--line) 15% 85%, transparent); } }
-.steps li { position: relative; }
-.steps li::before { width: 48px; height: 48px; font-weight: 700; color: #fff;
-  background: radial-gradient(circle at 34% 28%, rgb(255 255 255 / .35), transparent 42%), linear-gradient(160deg, var(--orb-a), var(--button) 60%, var(--orb-b));
-  box-shadow: 0 0 0 5px var(--bg), 0 8px 18px -4px color-mix(in srgb, var(--button) 60%, transparent); }
-
-/* Three fixes: sticky stacking cards (Recordly). Pure CSS depth while scrolling; nothing animates. */
-.stack { display: grid; gap: 24px; margin-top: 48px; }
-.feature { display: grid; gap: 16px; align-items: center; min-height: 380px; padding: 16px; border-radius: var(--r-l); background: var(--card); box-shadow: var(--shadow); }
-.feature .media { align-self: stretch; display: grid; place-items: center; padding: 28px; border-radius: var(--r-m); background: var(--grain), linear-gradient(var(--sky-2), var(--sky-3)); }
-.feature .text { padding: 16px 24px; }
-.sheet { width: min(100%, 420px); padding: 18px; border-radius: 12px; background: var(--win-bg); box-shadow: var(--shadow); font-size: 13px; letter-spacing: 0; }
-@media (min-width: 900px) {
-  .feature { grid-template-columns: 7fr 5fr; position: sticky; top: 88px; }
-  .feature:nth-child(2) { top: 102px; } .feature:nth-child(3) { top: 116px; }
-  .feature + .feature { box-shadow: 0 -40px 80px -40px rgb(var(--ink) / .5), var(--shadow); }   /* the overlap reads as depth */
+    radial-gradient(70% 45% at 50% 108%, var(--wp-glow), transparent 70%),        /* the key light: a dawn horizon */
+    radial-gradient(38% 22% at 14% 96%, var(--wp-cloud), transparent 72%),
+    radial-gradient(44% 26% at 52% 104%, var(--wp-cloud), transparent 72%),
+    radial-gradient(34% 20% at 88% 98%, var(--wp-cloud), transparent 72%),
+    radial-gradient(60% 50% at 82% -8%, var(--wp-hi), transparent 65%),
+    linear-gradient(176deg, var(--wp-1), var(--wp-2) 42%, var(--wp-3) 74%, var(--wp-4));
+  box-shadow: inset 0 0 0 .5px rgb(var(--ink) / .2), inset 0 1px 0 rgb(255 255 255 / .25); }
+.menubar { position: absolute; inset: 0 0 auto; height: 28px; margin: 0; padding: 0 16px; display: flex; gap: 18px; align-items: center;
+  border-radius: var(--r-xl) var(--r-xl) 0 0; background: var(--menubar); color: #fff; font: 500 13px/1 var(--font); }
+.menubar span { margin-left: auto; }
+.scene { position: relative; transform-style: preserve-3d; }
+.finder { position: absolute; left: 2%; top: 16%; width: 38%; margin: 0; transform: translateZ(-120px); }
+.note { position: absolute; right: 3%; top: 9%; width: 340px; display: grid; grid-template-columns: 32px 1fr auto; gap: 2px 10px;
+  margin: 0; padding: 12px 14px; border-radius: 18px; background: var(--glass-lite); font-size: 13px; transform: translateZ(110px);
+  box-shadow: inset 0 1px 0 var(--hi), 0 0 0 .5px rgb(var(--ink) / .18), 0 14px 32px -10px rgb(var(--wp-ink) / .4); }
+.window { box-shadow: var(--shadow-win); }
+@media (max-width: 720px) { .finder, .note, .menubar { display: none; } .stage.daylight::before { inset: 0; } }
+@media (prefers-reduced-motion: no-preference) {
+  .window { animation: surface var(--t-hero) var(--ease-out) .1s backwards; }          /* existing keyframes, MOTION §2.3 */
+  .finder { animation: drift .9s var(--ease-out) .3s backwards; }
+  .note   { animation: notify .7s var(--ease-spring) 1.3s backwards; }
 }
-
-/* Free: one card, a big rounded word, a 1px accent rim. */
-.free .card { max-width: 560px; margin-inline: auto; text-align: center; box-shadow: var(--z2), inset 0 1px 0 color-mix(in srgb, var(--accent) 35%, transparent); }
-.free .big { margin: 0; font: 700 clamp(3.5rem, 8vw, 5.5rem)/1 var(--font-num); letter-spacing: -.04em; }
-.free .checks { text-align: left; }
-
-/* Finale: the icon floating in the sky with a halo. */
-.finale .panel { background: var(--grain), radial-gradient(40% 40% at 50% 38%, var(--glow), transparent 70%), linear-gradient(var(--sky-1), var(--sky-2) 60%, var(--sky-3)); }
-.finale .panel h2, .finale .panel .facts { color: var(--text); }
+@keyframes drift  { from { opacity: 0; transform: translate3d(-40px, 20px, -160px); } }
+@keyframes notify { from { opacity: 0; transform: translate3d(60px, 0, 110px); } }
 ```
 
-- Each `.sheet` is a small HTML drawing of the real sheet (`role="img"` with a label): a title, three rows with
-  `.tag`s, two fake buttons as `span`s. Back Up ends on `<span class="tag ok">SHA-256 verified</span>`; Retry Upload
-  shows per-item outcomes; Restart iCloud Sync shows the consent sentence and a Cancel/Restart pair, with copy from
-  `RestartSyncSheet`.
-- Sticky cards go `position: static` below 900px.
-- The finale panel's text sits on `--sky-3` (light) or `--sky-1` (dark); `--text` on both is above 12:1.
+**Scaling.** At 720px and wider the stage scales with stepped `zoom` so replica text rescales sharply instead of
+blurring: `.stage { zoom: .86 }` below 1180px, `.72` below 1000px, `.6` below 860px (VERIFY `zoom` with
+`perspective` in Safari and Firefox 126+). Below 720px keep today's one-column collapse (sidebar hidden, zoom 1).
 
-### 4.5 Sub-pages, Whydunit specifics
+**Sequence** (2.0 s, once, then still; replaces MOTION §2.1):
 
-- **Download:** the icon panel uses the finale's sky; copy under it: "Only from github.com/EverydayOpen/whydunit/releases."
-- **404:** the sky panel with MOTION's cloud (no files), "This page didn't upload either.", Home.
-- **Guides:** `.summary` callouts keep a 3px accent left rule.
+| t (s) | What happens | Element | Easing |
+|---|---|---|---|
+| 0.10–1.20 | The window rises from `translate3d(0, 60px, -120px) rotateX(24deg)` and settles flat | `.window` | `--ease-out` |
+| 0.30–1.20 | Finder drifts in from back-left | `.finder` | `--ease-out` |
+| 1.30–2.00 | The notification slides in from the right, as a macOS banner does | `.note` | `--ease-spring` |
+
+After 2.0 s the scene is still. Pointer tilt up to 5° (`data-tilt`, MOTION §1.3); phones settle on scroll. The rest
+state is the final state, so Reduce Motion, print and no-JS show exactly it. The tagline stays the LCP.
+
+**Delete:** `.sky`, `.cloud`, `.cloud-ok`, `.doc`, `.ghost`, `.chip*`, the `upload` keyframes and the cloud
+`<symbol>`s.
+
+### 4.4 The window replica (the Mac object in the diorama and the fixes wells)
+
+Drawn at 1:1 point size for macOS 26 proportions, from the existing `.win-*` markup restyled through the `--win-*`
+tokens: a 1040px-wide window with an 18px radius; the sidebar as an inset panel (8px margin, 12px radius) with the
+traffic lights inside it; a toolbar with no fill (15px/600 title, 11px subtitle, trailing icon buttons in one 32px
+capsule); 13px system text; sidebar rows with a category symbol (no filled tiles, §5.2) and a trailing count;
+`.tag`s as they are; the verdict plate and the findings list as §5.2 draws them. **Acceptance:** it must match the
+CI capture of the redesigned Summary side by side.
+
+### 4.5 Sub-pages
+
+Download, guides, changelog, support, privacy, terms and 404 inherit the tokens, type and header.
+
+- **Download:** the finale panel (`.mini`, 240px tall) with the icon on the floor reflection, the h1, the button,
+  the requirements line, three key-cap steps (Open the DMG · Drag to Applications · Open the app) and the official
+  line.
+- **Changelog:** release cards (`.card`) with a 2px accent rail on the left and the version in a mono tag.
+- **Guides, support, privacy, terms:** the reading layout (`.read`, prose 17px/1.6) on paper. They stay still.
+- **404:** the finale panel with one Finder-style file glyph on the wallpaper and "This page isn't here. Nothing
+  was lost." (copy owner to confirm).
 
 ## 5. Whydunit app (macOS 15). Written, not compiled.
 
-### 5.1 Tokens (`App/DesignSystem/Tokens.swift`, `App/DesignSystem/SeverityIcon.swift`, `Assets.xcassets`)
+### 5.1 Window, chrome and the wash
 
-- **AccentColor.colorset:** `#2457E0` light, `#3461EA` dark. The user's non-Multicolor accent choice still wins
-  (HIG; VERIFY on a Mac). Sidebar selection, `.borderedProminent`, toggles and links take the brand colour with no
-  code. VERIFY that XcodeGen (`project.yml`) sets `ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor`.
-- §3.1's `well`, `lifted` and `Tag` go in `Tokens.swift`, beside MOTION §3.1's `Motion`, `flipIn` and `cardSwap`.
+- `NavigationSplitView`, the unified toolbar (Scan Again, Inspector, the finding page's `Back Up…`), the inspector,
+  sheets and Settings are unchanged (BUILD_PLAN §6).
+- `DetailView` adds `.toolbarBackground(.hidden, for: .windowToolbar)` so `Sky` runs under the toolbar, as in Music
+  and Photos (VERIFY on macOS 15; on 26 the SDK's scroll-edge effect keeps the title legible).
+- **`Sky`** (`Tokens.swift`, existing) grows: the wash to 320pt, plus a top-center sun:
 
 ```swift
-/// Daylight on the top of a stage screen: the accent at 9% (16% in dark) fading out over 240pt, plus a faint
-/// key light. Static, never animated, never keyed to a verdict. Increase Contrast gets the plain window.
-struct Sky: View {
-    @Environment(\.colorScheme) private var scheme
-    @Environment(\.colorSchemeContrast) private var contrast
-
-    var body: some View {
-        Group {
-            if contrast == .increased {
-                Color(nsColor: .windowBackgroundColor)
-            } else {
-                ZStack(alignment: .top) {
-                    Color(nsColor: .windowBackgroundColor)
-                    LinearGradient(colors: [Color.accentColor.opacity(scheme == .dark ? 0.16 : 0.09), .clear], startPoint: .top, endPoint: .bottom)
-                        .frame(height: 240)
-                }
-            }
-        }
-        .ignoresSafeArea()
-        .allowsHitTesting(false)
-        .accessibilityHidden(true)
-    }
+if contrast != .increased {
+    LinearGradient(colors: [Color.accentColor.opacity(scheme == .dark ? 0.16 : 0.09), .clear], startPoint: .top, endPoint: .bottom).frame(height: 320)
+    RadialGradient(colors: [.white.opacity(scheme == .dark ? 0.06 : 0.6), .clear], center: .top, startRadius: 0, endRadius: 420)
 }
 ```
 
-**System Settings tiles** (a white symbol on a rounded square of one colour) for the sidebar and severities:
+- **Sidebar, the end of the orange wall.** Rows show a category SF Symbol, not a filled tile: `.orange` or `.red`
+  only for warning and critical findings, `.secondary` for info, Summary is `icloud` in the accent. Keep the native
+  `.badge(count)`. The row's accessibility label leads with the severity word. `extension RuleID { var symbol:
+  String }` in `Tokens.swift` (VERIFY each in the SF Symbols app for macOS 15):
 
-```swift
-extension View {
-    /// System Settings tile. Used by SeverityIcon(tile:) and the sidebar rows.
-    func tile(_ color: Color, size: CGFloat) -> some View {
-        let shape = RoundedRectangle(cornerRadius: size * 0.26, style: .continuous)
-        return font(.system(size: size * 0.55, weight: .semibold))
-            .foregroundStyle(.white)
-            .frame(width: size, height: size)
-            .background(color.gradient, in: shape)
-            .overlay(shape.strokeBorder(.white.opacity(0.22), lineWidth: 0.5))
-    }
-}
-```
+  | RuleID | Symbol | RuleID | Symbol |
+  |---|---|---|---|
+  | `onlyOnThisMac` | `laptopcomputer` | `storageDebt` | `internaldrive` |
+  | `syncStalled` | `clock.badge.exclamationmark` | `developerFolders` | `hammer` |
+  | `storageFull` | `externaldrive.badge.exclamationmark` | `relocatedFiles` | `folder.badge.questionmark` |
+  | `serverUnreachable` | `icloud.slash` | `excludedByDesign` | `minus.circle` |
+  | `uploadRejected` | `exclamationmark.icloud` | `unreadableFolders` | `folder.badge.minus` |
+  | `stuckItems` | `icloud.and.arrow.up` | `permissionDenied` | `lock.shield` |
+  | `lockFlags` | `lock.doc` | `tooLarge` | `scalemass` |
+  | `conflicts` | `doc.on.doc` | History: Backups `clock.arrow.circlepath`, Activity `list.bullet.rectangle`, both `.secondary` |
 
-`SeverityIcon` gets `var tile = false`; with `tile` and a `size` it draws
-`Image(systemName: severity.symbol).tile(severity == .info || severity == .unknown ? .gray : severity.color, size: s)`.
-It stays the only view that draws a severity, and the word for VoiceOver and Differentiate Without Color is unchanged.
+- **No empty sidebar.** `NavigationSplitView(columnVisibility:)` with view `@State` in `MainView`: `.detailOnly`
+  until the first diagnosis arrives, then `.all` with `Motion.spring`. Not in `AppStore`.
 
 ### 5.2 Screens
 
-- **Window and chrome.** Unified toolbar, translucent sidebar and inspector, unchanged. On macOS 26 the SDK makes
-  them glass by itself; Whydunit adds no glass and no custom chrome.
-- **Sidebar.** Structure unchanged. Rows get 20pt tiles: Summary `Image(systemName: "icloud.fill").tile(.accentColor, size: 20)`,
-  each finding `SeverityIcon(tile: true, size: 20)`, Backups `clock.arrow.circlepath` on `.teal`, Activity
-  `list.bullet.rectangle` on `.gray`. Badges stay native; tiles keep their colour on the selected row, as in System
-  Settings.
-- **Welcome** (never scanned): a 480pt column over `Sky()`:
-  1. the app icon at 112pt with MOTION §3.2's entrance and `HoverTilt(max: 12, glare: true)`, resting on a still contact
-     shadow `Ellipse().fill(.black.opacity(0.18)).frame(width: 84, height: 10).blur(radius: 8).offset(y: 62)` (static
-     blur, drawn once);
-  2. the sentence in `.system(size: 26, weight: .bold)` with `.tracking(-0.4)`, copy unchanged;
-  3. the privacy line, `.callout` secondary, unchanged;
-  4. **Scan iCloud Drive**: `.borderedProminent`, `.buttonBorderShape(.capsule)`, `.controlSize(.extraLarge)`
-     (VERIFY both, macOS 14+), default action unchanged;
-  5. three quiet `Label`s in `.caption.weight(.medium)` secondary, in a `ViewThatFits` row: "Reads status, not
-     contents" `doc.text.magnifyingglass` · "Backs up first" `externaldrive.badge.checkmark` · "Trash, never delete"
-     `trash`. Copy owner to confirm; they are the site's safety cards.
-- **First scan.** MOTION §3.3's `ScanGlyph` over `Sky()`, cloud at 72pt with `.symbolRenderingMode(.hierarchical)`
-  and `.foregroundStyle(.tint)`. The linear `ProgressView`, phase text and count stay; the count is
-  `.font(.system(.callout, design: .rounded)).monospacedDigit()`.
-- **Summary.** `Form(.grouped)` with `.scrollContentBackground(.hidden)` and `.background { Sky() }` (VERIFY the
-  grouped cells keep their fill).
-  - Hero section: `SeverityIcon(tile: true, size: 44)` on a `RadialGradient(colors: [Color.accentColor.opacity(0.35), .clear], …)`
-    halo (always the accent, never the severity colour), the title in `.title2.weight(.bold)`, the meta line with
-    numbers in `.monospacedDigit()`. `.accessibilityElement(children: .combine)` unchanged; the flip-in follows MOTION §3.4.
-  - Findings rows: MOTION's `FindingRow` with `SeverityIcon(tile: true, size: 24)`, a trailing
-    `Tag(text: n.formatted(), tint: severity.color)` before the chevron.
-  - iCloud Drive section: unchanged `LabeledContent`, values `.monospacedDigit()`; the Sync check value leads with a
-    6pt status dot via `Tag`.
-- **Finding detail header.** `SeverityIcon(tile: true, size: 40)`, the title in `.title2.weight(.bold)`, the
-  explanation. Steps: each number in a 20pt circle,
-  `Text("\(i + 1)").font(.caption.weight(.bold)).frame(width: 20, height: 20).background(Color.accentColor.opacity(0.14), in: Circle())`,
-  text primary. The one `.borderedProminent` action uses `.buttonBorderShape(.capsule)`; the rest stay `.bordered`.
-  The `Table` is untouched (MOTION §3.6); its Status column shows `Tag(status.label, tint:)` (accent waiting, red
-  failed, gray otherwise); Size and Modified use `.monospacedDigit()`.
-- **Inspector.** Native. Section headers 11pt semibold uppercase `.tracking(0.6)` secondary with a trailing borderless
-  Copy; values `.system(.callout, design: .monospaced)`, selectable. Empty state unchanged.
-- **Sheets** (Back Up, Retry Upload, Restart iCloud Sync) share one header:
+**Welcome.** A 480pt column centered at 45% height over the taller `Sky`:
+1. `OnFloor(height: 128) { Image(nsImage: NSApp.applicationIconImage).resizable().frame(width: 128, height: 128) }`
+   with MOTION §3.2's entrance and `HoverTilt(max: 8, glare: true)` on the whole `OnFloor`, so the reflection
+   follows the tilt.
+2. The headline at 30pt semibold, `tracking(-0.6)` (copy unchanged).
+3. The privacy line, `.callout` secondary, max 440pt.
+4. "Scan iCloud Drive": `.borderedProminent`, `.buttonBorderShape(.capsule)`, `.controlSize(.extraLarge)`.
+5. The three trust `Label`s in `.caption.weight(.medium)` secondary, as now.
 
-  ```swift
-  /// A sheet's first lines: the action's symbol in a well, the title, one sentence. The same in all three sheets.
-  struct SheetHeader: View {
-      let symbol: String
-      let title: String
-      let detail: String
+**First scan.** `ScanGlyph` (the only loop, MOTION §3.3) over `Sky` at 72pt, hierarchical `.tint`; the linear
+`ProgressView` 280pt wide; the count in `.system(.callout, design: .rounded).monospacedDigit()`.
 
-      var body: some View {
-          HStack(alignment: .top, spacing: Space.s) {
-              Image(systemName: symbol).font(.system(size: 22, weight: .semibold)).foregroundStyle(.tint)
-                  .well(.accentColor, size: 48).accessibilityHidden(true)
-              VStack(alignment: .leading, spacing: Space.xxs) {
-                  Text(title).font(.title2.weight(.bold))
-                  Text(detail).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-              }
-          }
-          .accessibilityElement(children: .combine)
-      }
-  }
-  ```
+**Summary.** The `Form` becomes `ScrollView { VStack(spacing: Space.l) }` at `frame(maxWidth: 760)`, on `Sky`.
+1. **Verdict plate** (`.surface(18)`, the one lifted object; `flipIn` as MOTION §3.4): top row
+   `SeverityIcon(tile: true, size: 52)`, the title at 22pt semibold `tracking(-0.3)`, the meta line in secondary
+   `monospacedDigit`, Copy Diagnosis trailing as `.bordered` small; a 0.5pt hairline; then a 3-column row of
+   `Metric`s separated by vertical hairlines: `Metric("Checked", "4,213")`, `Metric("Need attention", "4", dot:
+   .orange)`, `Metric("Only on this Mac", "2.1", unit: "GB")`. Values always `.primary`.
+2. **Findings in two surfaces:** small-caps headers "Needs attention" (warning and critical) and "Good to know"
+   (info). View-level grouping; the data flow is unchanged. Rows (≥ 52pt) separated by 0.5pt hairlines inset 56pt:
+   a 28pt neutral `well` with the rule's symbol in the severity tint; the title 13pt semibold; the explanation 12pt
+   secondary with `lineLimit(2)` and `.fixedSize(horizontal: false, vertical: true)`, never cut mid-word (copy
+   owner: first sentence under 2 lines at 700pt); trailing `Tag(count, tint: severity.color)` and a chevron.
+   `FindingRow`'s hover and flip-in are unchanged.
+3. **iCloud Drive facts** as one more `.surface(16)` of `LabeledContent` rows, values `.monospacedDigit()`.
 
-  Symbols (VERIFY in the SF Symbols app, macOS 15): `externaldrive.badge.checkmark`, `icloud.and.arrow.up`,
-  `arrow.clockwise.icloud`. Guarantees block: a grouped list of `checkmark.circle.fill` green rows with mono facts
-  ("18.2 GB free · needs 2.4 GB", "Every item is on this Mac"). Step dots top right: the current one 18×6 in `.tint`,
-  others 6×6 `.quaternary`, `accessibilityHidden`. Done: `checkmark.seal.fill` 40pt hierarchical green with
-  `.symbolEffect(.bounce, value: done)` and `.symbolEffectsRemoved(reduceMotion)`, "12 copies verified" and
-  `Tag(text: "SHA-256", tint: .green)`. Step swaps: MOTION §3.5 `cardSwap`, unchanged.
-- **Backups and Activity.** Native lists. Backups rows: a folder tile, the date in mono, `Tag("Verified · 14 items", tint: .green)`.
-  Activity: a 64pt mono time column, a 6pt dot by event kind, the text.
-- **Empty and error states** (iCloud Drive Is Off, Permission Needed, The Scan Didn't Finish): the native
-  `ContentUnavailableView` over `Sky()`, its symbol hierarchical in `.tint`.
-- **Settings:** stock.
+**Finding page.** Header over `Sky`: a 44pt symbol `well`, the title at 22pt semibold, the explanation (max 620pt),
+"What to try" as numbered rows (20pt accent-tinted circles, text primary), then the action row: one
+`.borderedProminent` capsule, the rest `.bordered` capsules. The `Table` stays untouched (MOTION §3.6) apart from the
+Status column's `Tag` and mono Size and Modified. `Back Up…` stays in the toolbar with its shortcut.
+
+**Inspector.** Native. Section headers small-caps with a trailing borderless Copy; values
+`.system(.callout, design: .monospaced)`, selectable.
+
+**Sheets** (Back Up, Retry Upload, Restart iCloud Sync). Keep `SheetHeader` and `cardSwap`. `ItemList` keeps its
+`List` but gets `.listStyle(.plain)`, `.scrollContentBackground(.hidden)` and `.surface(12)`; each row gains a 20pt
+file-type icon from `NSWorkspace.shared.icon(for: UTType(filenameExtension: ext) ?? .data)`, which never touches
+the file. The preflight block: green `checkmark.circle.fill` rows with mono facts on `Color.primary.opacity(0.04)`
+at 12pt radius. Capsule buttons, step dots top right, Done shows `checkmark.seal.fill` 40pt with one bounce (none
+under Reduce Motion) and `Tag("SHA-256", tint: .green)`.
+
+**Backups.** A native list; rows: folder glyph, the date in mono, `Tag("Verified · 14 items", tint: .green)`, Show
+in Finder.
+
+**Activity.** A timeline in a `LazyVStack`: a 64pt mono time column, a 1pt `.separator` rail, an 8pt dot per event
+kind, the text; days grouped under small-caps headers.
+
+**Empty and error states.** `ContentUnavailableView` over `Sky`: a hierarchical `.tint` symbol, one sentence, one
+capsule action. Settings stays stock.
+
+**Dark mode.** `Sky` at 16%; surfaces white .055 with a white .10 rim; shadows black .5; sidebar symbols keep their
+tints. Increase Contrast gives the plain window and 1pt primary strokes.
 
 ## 6. Icon and social image (release owner: `tools/make_icon.py`, `tools/make_og.py`, stdlib SDF renderers)
 
-- **Icon.** Keep the cloud, lens and check. Body: sky gradient `#6FB6FF` → `#2457E0` → `#2A2F9E`, a soft elliptical
-  specular band across the top quarter (white at 18%). Cloud: frosted glass, white at 90%, an inner top highlight and a
-  cool underside shade `#E4EEFF`, so it reads as a volume. Lens: a brighter rim and a small highlight. Later, on a Mac:
-  an Icon Composer `.icon` with three layers (background, cloud, lens) for Liquid Glass; VERIFY how the PNG renders on 26.
-- **OG (1200×630).** The sky gradient, the icon at 256 with a halo, the two-tone headline on the left in the white
-  wordmark's SDF strokes, and a simplified window turned `rotateY(-12deg)` off the right edge. No sentence in the image;
-  `og:title` carries it.
+- **Icon: unchanged for now.** The blue squircle with the frosted cloud and lens reads correctly at every size in
+  the CI captures. Later, on a Mac: a macOS 26 Icon Composer `.icon` with three layers (blue, cloud, lens) and
+  specular on the cloud (VERIFY).
+- **OG image (1200×630):** the diorama's wallpaper edge to edge, the icon at 280px standing on the dawn horizon
+  with its reflection on the floor, and the wordmark under it. No sentence in the image; `og:title` carries it.
 
 ## 7. What to delete from the current look
 
-- The 128px icon as the hero and the product name as the h1. The promise is the h1; the icon moves to the finale and
-  the download page.
-- Apple.com's stock palette (`#0071e3`, `#f5f5f7`, `#1d1d1f`, pure `#000` dark) and the flat `--bg-alt` card slabs.
-- The one untinted grey `--shadow`; the banded sections and `section:not(.band) .card`.
-- The full-width sticky header bar with its border; the bare-hairline FAQ; the flat blue step dots; the grey footer
-  block without an official-sources line.
-- "Sound familiar?" as three grey quote cards (it becomes the Finder/Whydunit pair).
-- In the app: the empty Welcome pane, blue everywhere by default, the plain `chevron.right` rows with no counts.
+- The sky-in-a-box hero: `.sky`, `.cloud`, `.cloud-ok`, `.doc`, `.ghost`, `.chip*`, the `upload` keyframes, the
+  pale flat gradient (`--sky-*`, `--cloud`, `--haze`, `--orb-*`).
+- Weight 700 on every heading; the flat blue step orbs; the pale accent icon wells on marketing cards; the 6-card
+  safety grid; the pricing-style "Free" card; the boxed proof strip; the stack of FAQ cards; the two-tone h2 on
+  every single section.
+- The untinted grey shadow; the banded sections and `section:not(.band) .card`.
+- In the app: the filled orange tiles on every sidebar and finding row; the empty Welcome sidebar; the grey grouped
+  `Form` cells; explanations cut mid-sentence; the icon floating in a blue blur.
 
 ## 8. Acceptance and budgets
 
-**Looks premium (a judge checks these against screenshots, light and dark, 1440 and 360):**
+**Looks premium (a judge checks light and dark captures at 1440 and 390px against `refs/`):**
 
-- [ ] The page background is never pure white or pure black; cards are white (or `#141a28`) objects with a visible
-  hairline and a soft navy-tinted shadow, never grey slabs.
-- [ ] The hero product sits in a sky frame with rounded corners and hangs off its lower edge onto paper; a ghost Finder
-  window and two chips sit at different depths; at rest the window is flat and sharp.
-- [ ] Exactly one accent is visible on the page (sky blue); green, orange and red appear only in tag dots and symbols.
-- [ ] The header is a floating pill, not a bar. Buttons show a lit top edge and a blue glow; secondary buttons and
-  chips read as key-caps.
-- [ ] Headlines are tight (−.03em), two-tone, `text-wrap: balance`; big numbers are rounded; nothing is ALL CAPS.
-- [ ] No band edges anywhere; sections are separated by whitespace. No emoji, no stock icon set, no gradient text.
-- [ ] Dark mode is the same world at dusk (indigo sky, light rims on every surface), not an inverted page.
-- [ ] The footer names the only official site and download source.
+- [ ] Headlines render in Inter Display on Windows Chromium with no shift when it arrives; weight 600, tight tracking.
+- [ ] The hero diorama: the wallpaper has a deep top, a dawn horizon and clouds; the window stands out with a soft
+      tinted shadow and hangs off the wallpaper onto paper; Finder is behind, the notification in front; the menu bar
+      reads as macOS; everything is still after 2 s; the copy matches the CI capture side by side.
+- [ ] No section uses a pale accent icon well; the safety section is a ledger; the FAQ is one grouped panel.
+- [ ] Every raised surface shows a lit top edge, a 0.5px hairline (1px rim in dark) and an ink-tinted shadow.
+- [ ] Real screens appear only at ≤ 50% of their pixel width, in a strip that scrolls inside itself; no horizontal
+      page scroll at 360px (`scrollWidth === 360`).
+- [ ] The finale icon stands on a reflection (Chrome and Safari).
+- [ ] With Reduce Motion, no JS and print, the page shows the final state; print is dark text on white (§2.7 fix).
+- [ ] `python tools/build_site.py --check` passes with exactly two `:root` blocks and no `style=""`.
+- [ ] App, from CI captures: no orange wall in the sidebar or findings; no truncated explanation; Welcome has no
+      empty sidebar; no grey grouped cell on the wash; the verdict plate is one porcelain object; the icon stands on
+      a floor; VoiceOver labels and traits are unchanged.
 
-**Functional (on top of MOTION.md §6.2):**
+**Budgets:**
 
-- [ ] `python tools/build_site.py --check` passes; exactly two `:root` blocks; no `data-theme`/`localStorage`.
-- [ ] 1440 and 360, light and dark: no horizontal scroll, the stage is full-bleed at ≤640px, the ghost and chips are
-  hidden on phones, sticky cards are static below 900px.
-- [ ] Reduced motion: nothing moves, rest state complete. Reduced transparency: solid header. `prefers-contrast: more`:
-  2px outlines, no grain. Forced colors: bordered buttons and cards. Print: no stage, no shadows.
-- [ ] JS off: the page is complete. CLS 0; LCP is the h1.
-- [ ] Owner, Safari on a Mac: headline tracking, the 3D sort of the ghost plane, `color-mix`, the header glass.
-- [ ] App (once CI compiles it): MOTION's greps pass; `grep -rn "glassEffect" App/` finds nothing; idle CPU 0% within
-  2 s; VoiceOver labels unchanged; Increase Contrast shows strokes on tags and wells and a plain window background.
+| Item | Cap |
+|---|---|
+| `styles.css` | 40 KB (checker cap; 38 KB today: the deletions in §7 pay for the additions; VERIFY with `wc -c`) |
+| `motion.js` | unchanged, ≤ 5 KB, byte-identical in both repos |
+| Font | one woff2 ≤ 32 KB, byte-identical in both repos |
+| Home HTML (built) | ≤ 36 KB (the replica adds markup) |
+| First load (HTML + CSS + JS + font + icon + favicon) | ≤ 150 KB |
+| Lazy screenshots | ≤ 110 KB each, 3 per scheme, only the active scheme loads |
+| Third-party requests, CDNs, trackers | 0 |
+| Hero sequence | ≤ 2.0 s, once; ≤ 4 planes |
+| CLS / LCP | 0 / the h1 text |
+| App CPU after entrance | 0% within 2 s; `HoverTilt` ≤ 8 on screen; new assets or dependencies: none |
 
-**Budgets** (caps from MOTION.md §6.1; measure with `wc -c`):
-
-| Item | Cap | Today | Estimate |
-|---|---|---|---|
-| `site/static/styles.css` | 40 KB | 12.5 KB (19.2 with MOTION) | about 31 KB |
-| `site/static/motion.js` | 5 KB | 2.7 KB (MOTION) | 2.7 KB, byte-identical |
-| Home HTML, built | 26 KB | 16.8 KB | about 23 KB (pair, three sheet mocks, proof strip) |
-| New fonts, images, scripts, requests | 0 | 0 | 0 |
-| App: new assets or dependencies | 0 | 0 | 0 (AccentColor is a colorset, not an image) |
+**Security.** Nothing here touches the safety rules, `Process`, the entitlements, the Sparkle feed or the data
+flow. The CSP stays as it is (same-origin fonts are already allowed). Glass and materials are system APIs.
 
 ## 9. Changes for other owners, decisions for the lead, VERIFY list
 
-**Other owners (proposals, not made here):**
+**By owner (proposed, not made):**
 
-1. **Lead, BUILD_PLAN §6:** "system colors only" → "system colors plus the brand AccentColor (the user's
-   non-Multicolor choice wins)"; "No card backgrounds on content" → "no card backgrounds around rows; wells, tags, the
-   Sky wash, tiles and the sheet header are allowed"; add "Design: docs/DESIGN.md; motion: docs/MOTION.md". "No custom
-   glass" stays true.
-2. **Release owner, `tools/build_site.py contrast()`:** `on = "on-button" if "on-button" in light else "#ffffff"`, then
-   measure `(on, "button")` and `(on, "button-hover")`. Backward-compatible; Whydunit passes either way. Add the
-   MOTION §6.4 size caps.
-3. **Release owner:** `AccentColor.colorset` in `Assets.xcassets`; app-shell: the `project.yml` setting (§5.1).
-4. **Release owner:** icon and OG (§6).
-5. **Site owner:** §2.4 markup (sprite into `layout.html`, nav Source pill, official-sources line, theme-color), §4.
-6. **AGENTS.md:** add "Design: docs/DESIGN.md (tokens, compositions); motion: docs/MOTION.md."
-7. **CI:** once real windows can be captured on the macOS runner (`screencapture -l <windowid>`; VERIFY Screen
-   Recording permission there), a Mole-style "See it" gallery: WebP, width and height set, lazy after the first,
-   ≤120 KB each, framed on the sky. Never commit third-party screenshots.
+- **Site owner (`site/**`):** §2 and §4, the font file plus `OFL.txt`, the `layout.html` preload and theme-color,
+  the §2.7 `html[lang]` fix.
+- **App-views owner (`App/DesignSystem`, `App/Views`, `App/Sheets`):** §3 and §5. `columnVisibility` lives in
+  `MainView`. Nothing touches `AppStore`, the safety rules or the copy.
+- **Tools owner (`tools/build_site.py`):** rewrite and link-check `srcset="/`; add size caps to `--check` for
+  `styles.css` (40 KB), `motion.js` (5 KB), `fonts/*.woff2` (32 KB) and `shots/*` (110 KB).
+- **CI owner (`screens.yml`):** a `-o` no-shadow capture per screen plus `sips` conversion into `shots/`.
+- **Release owner:** the OG image (§6).
+- **Copy owner:** the trust line, the CI receipt wording, finding explanations under 2 lines, the notification and
+  404 text.
+- **BUILD_PLAN §6:** amend "No custom glass. No card backgrounds on content." to "Content sits on opaque porcelain
+  surfaces (DESIGN.md §3.1); glass only where the macOS 26 SDK draws it."
+- **MOTION.md:** record §2.8's table (the diorama sequence replaces §2.1; the notification and key-cap sink are new).
 
-**Decisions for the lead:**
+**Decisions for the lead:** (1) confirm the webfont (reverses "zero bytes"); (2) confirm real screenshots on the
+site; (3) confirm porcelain content surfaces as the BUILD_PLAN amendment above.
 
-- Whydunit has **no `LICENSE` file**. The site must not say "open source" until one is added; "View source" is fine.
-- "Signed and notarized" enters the facts line and footer only in the change that enables the signed 1.0 download.
-- Copy owner: the new h1, lede, proof stats, pair copy and the Welcome facts row need a pass against UI_SPEC §5.
-
-**VERIFY:** `buttonBorderShape(.capsule)` and `controlSize(.extraLarge)` on macOS 14+; `Form(.grouped)` cells over a
-hidden scroll background; the three sheet symbols; XcodeGen's accent setting; `text-wrap: balance`, `color-mix` and
-`ui-rounded` in Safari; the ghost plane's 3D sort in Safari; dark-mode banding with the grain.
+**VERIFY (on a Mac or in Safari):** `toolbarBackground(.hidden, for: .windowToolbar)`; `.controlSize(.extraLarge)`
+on macOS 15; every SF Symbol in §5.1; `Font.smallCaps()` with SF; `OnFloor`'s shadow offset and the reflection;
+`HoverTilt` signs; CSS `zoom` with `perspective` in Safari and Firefox 126+; `-webkit-box-reflect` inside a 3D
+parent; `sips formatOptions` syntax and WebP support on the runner; `screencapture -o -l`; the JPEG corner radius
+at half scale; the Inter Display subset size; `font-display: optional` with preload in Safari; the diorama's plane
+sorting in real Safari.

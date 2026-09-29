@@ -27,17 +27,20 @@ struct StepDots: View {
     }
 }
 
-/// A sheet's safety checks as one grouped list, in the native GroupBox.
+/// A sheet's preflight: its safety checks as mono facts, recessed into the sheet rather than raised (DESIGN.md §5.2).
 struct SafetyChecks<Content: View>: View {
     @ViewBuilder let content: Content
+    @Environment(\.colorSchemeContrast) private var contrast
 
     var body: some View {
-        GroupBox {
-            VStack(alignment: .leading, spacing: Space.xs) { content }
-                .font(.callout)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(Space.xxs)
-        }
+        let shape = RoundedRectangle(cornerRadius: 12, style: .continuous)
+        VStack(alignment: .leading, spacing: Space.xs) { content }
+            .font(.system(.callout, design: .monospaced))
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(Space.s)
+            .background(Color.primary.opacity(0.04), in: shape)
+            // A 4% fill vanishes under Increase Contrast; the stroke keeps the group (DESIGN.md §3.3).
+            .overlay { if contrast == .increased { shape.strokeBorder(Color.primary.opacity(0.5), lineWidth: 1) } }
     }
 }
 

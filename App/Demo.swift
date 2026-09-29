@@ -107,10 +107,13 @@ import WhydunitMac
         case .activity: store.route = .activity
         case .backUpSheet:
             store.route = .finding(.onlyOnThisMac)
-            // Once the window is up, so the sheet has a window to attach to.
+            // Once the window is up, so the sheet has a window to attach to. After the finding page's own
+            // pre-selection too, so the subtitle and the table's rows agree with the sheet.
             Task {
                 try? await Task.sleep(for: .seconds(1))
-                store.sheet = .backUp(paths: items[0..<4].map(\.path))
+                let picked = items[0..<4].map(\.path)
+                store.selection = Set(picked)
+                store.sheet = .backUp(paths: picked)
             }
         }
     }

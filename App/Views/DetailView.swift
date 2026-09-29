@@ -6,9 +6,11 @@ struct DetailView: View {
     @Environment(AppStore.self) private var store
 
     var body: some View {
+        // The stage screens let their Sky run up under the toolbar, as in Music and Photos (DESIGN.md §5.1). Backups and
+        // Activity are plain lists that scroll under it, so they keep the system's toolbar background.
         switch store.route ?? .summary {
-        case .summary: summary.navigationTitle("Summary")
-        case .finding(let rule): FindingDetailView(rule: rule).navigationTitle(rule.shortName)
+        case .summary: summary.navigationTitle("Summary").toolbarBackground(.hidden, for: .windowToolbar)
+        case .finding(let rule): FindingDetailView(rule: rule).navigationTitle(rule.shortName).toolbarBackground(.hidden, for: .windowToolbar)
         case .backups: BackupsView().navigationTitle("Backups")
         case .activity: ActivityView().navigationTitle("Activity")
         }
@@ -76,7 +78,7 @@ struct DetailView: View {
             ScanGlyph()
             ProgressView(value: fraction.map { min($0, 0.99) })
                 .progressViewStyle(.linear)
-                .frame(width: 320)
+                .frame(width: 280)
             Text(phase)
                 .font(.headline)
                 .contentTransition(.opacity)
@@ -99,8 +101,12 @@ struct DetailView: View {
 }
 
 private extension View {
+    /// Empty, error and first-scan states: over the Sky, with capsule actions like Welcome's (DESIGN.md §5.2).
     func skyBackground() -> some View {
-        frame(maxWidth: .infinity, maxHeight: .infinity).background { Sky() }
+        buttonStyle(.bordered)   // the prominent action sets its own style
+            .buttonBorderShape(.capsule)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background { Sky() }
     }
 }
 

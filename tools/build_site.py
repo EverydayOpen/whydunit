@@ -120,12 +120,16 @@ def build(out, site):
     entries = changelog.parse(str(log)) if log.exists() else []
     v = values(site)
     v["changelog"] = changelog_html(entries)
+    v["version"] = entries[0]["version"] if entries else "beta"   # the footer's mono version
     layout = (SITE / "src" / "layout.html").read_text(encoding="utf-8")
     prefix = urlsplit(site["baseURL"]).path   # "/whydunit-releases" on a project site, "" on a custom domain
 
     if out.exists():
         shutil.rmtree(out)
     shutil.copytree(SITE / "static", out)
+    css = out / "styles.css"   # its comments and indentation are for editors too (budget: check())
+    css.write_text(re.sub(r"/\*.*?\*/\n?|^[ \t]+", "", css.read_text(encoding="utf-8"), flags=re.S | re.M),
+                   encoding="utf-8", newline="\n")
     (out / ".nojekyll").write_text("")   # serve files as-is on GitHub Pages
     listed = []
     for rel, url, meta, body in pages():
@@ -148,7 +152,8 @@ def build(out, site):
                     head=Raw("\n".join(head)), body=Raw(fill(body, v, rel)))
         dest = out / rel
         dest.parent.mkdir(parents=True, exist_ok=True)
-        text = re.sub(r'\b(href|src)="/(?!/)', rf'\1="{prefix}/', fill(layout, page, "layout.html"))
+        # srcset too: a <picture>'s <source> carries one URL (DESIGN.md §2.6).
+        text = re.sub(r'\b(href|src|srcset)="/(?!/)', rf'\1="{prefix}/', fill(layout, page, "layout.html"))
         # External links (pages, layout and changelog notes alike) leak neither the opener nor the referrer.
         text = re.sub(r'<a (?![^>]*\brel=)(?=[^>]*\bhref="https?://)', '<a rel="noopener noreferrer" ', text)
         # Source comments and indentation are for editors, not visitors (no <pre> on the site). Budget: check().
@@ -181,6 +186,7 @@ class Page(HTMLParser):
         if "id" in a:
             self.ids.add(a["id"])
         self.links += [a[k] for k in ("href", "src") if a.get(k)]
+        self.links += [u.split()[0] for u in (a.get("srcset") or "").split(",") if u.strip()]
         if tag == "meta" and (a.get("name") or a.get("property")):
             self.meta[a.get("name") or a.get("property")] = a.get("content") or ""
         if tag == "link" and a.get("rel") == "canonical":
@@ -296,7 +302,10 @@ def check(out, site, v):
             errors.append(f"site.json: {key} is a placeholder but not listed in \"placeholders\"")
     errors += contrast((out / "styles.css").read_text(encoding="utf-8"))
     # Budgets (docs/MOTION.md §6.1, docs/DESIGN.md §8): the site stays light.
-    for name, cap in (("styles.css", 40_000), ("motion.js", 5_000), ("index.html", 26_000)):
+    caps = [("styles.css", 40_000), ("motion.js", 5_000), ("index.html", 36_000)]
+    caps += [(f.relative_to(out).as_posix(), 32_000) for f in out.glob("fonts/*.woff2")]
+    caps += [(f.relative_to(out).as_posix(), 110_000) for f in out.glob("shots/*")]
+    for name, cap in caps:
         if (out / name).stat().st_size > cap:
             errors.append(f"{name}: {(out / name).stat().st_size} bytes, over the {cap} byte budget")
     return errors, len(parsed)

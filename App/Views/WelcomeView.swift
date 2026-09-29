@@ -9,38 +9,31 @@ struct WelcomeView: View {
 
     var body: some View {
         VStack(spacing: Space.m) {
-            ZStack {
-                // The still contact shadow the icon rests on: blurred once, never animated (only faded in).
-                Ellipse()
-                    .fill(.black.opacity(0.18))
-                    .frame(width: 84, height: 10)
-                    .blur(radius: 8)
-                    .offset(y: 62)
-                    .opacity(shown ? 1 : 0)
-                Image(nsImage: NSApp.applicationIconImage)
-                    .resizable()
-                    .frame(width: 112, height: 112)
-                    .modifier(HoverTilt(max: 12, glare: true))     // glare masked to the icon's own shape
-                    .rotation3DEffect(.degrees(shown || reduceMotion ? 0 : 35), axis: (x: 1, y: 0, z: 0), perspective: 0.5)
-                    .scaleEffect(shown || reduceMotion ? 1 : 0.85)
-                    .offset(y: shown || reduceMotion ? 0 : 16)
+            // The one lifted object: the icon standing on the dawn horizon, its reflection tilting with it. It arrives
+            // in 3D once (MOTION.md §3.2); the floor line and its pool of light stay still and only fade in.
+            OnFloor(height: 128) {
+                Image(nsImage: NSApp.applicationIconImage).resizable().frame(width: 128, height: 128)
+            }
+            .modifier(HoverTilt(max: 8, glare: true))     // glare masked to the icon and its reflection
+            .rotation3DEffect(.degrees(shown || reduceMotion ? 0 : 35), axis: (x: 1, y: 0, z: 0), perspective: 0.5)
+            .scaleEffect(shown || reduceMotion ? 1 : 0.85)
+            .offset(y: shown || reduceMotion ? 0 : 16)
+            .opacity(shown ? 1 : 0)
+            .background(alignment: .top) {
+                // Horizon's line runs through its middle (360 × 0.32 = 115pt tall): here, on the icon's base at 128pt.
+                Horizon(tint: .accentColor, width: 360)
+                    .offset(y: 128 - 58)
                     .opacity(shown ? 1 : 0)
             }
-            // The brand light behind the object, as on the Summary hero. A background, so the 260pt halo doesn't
-            // grow the 112pt icon's layout; static, only faded in with the icon.
-            .background {
-                RadialGradient(colors: [Color.accentColor.opacity(0.28), .clear], center: .center, startRadius: 0, endRadius: 130)
-                    .frame(width: 260, height: 260)
-                    .opacity(shown ? 1 : 0)
-            }
-            .padding(.bottom, Space.xs)
             .accessibilityHidden(true)
             Text("Find out which iCloud Drive files are stuck, and why.")
-                .font(.system(size: 26, weight: .bold))
+                .font(.system(size: 30, weight: .semibold))
+                .tracking(-0.6)
                 .fixedSize(horizontal: false, vertical: true)   // wraps to two lines at the 1000pt minimum
             Text("Nothing about your files leaves this Mac. Whydunit reads file status, never file contents, and checks sync by uploading one small test file, which it then moves to the Trash.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
+                .frame(maxWidth: 440)
             Button("Scan iCloud Drive") { store.scan() }
                 .buttonStyle(.borderedProminent)
                 .buttonBorderShape(.capsule)
@@ -58,6 +51,8 @@ struct WelcomeView: View {
         .multilineTextAlignment(.center)
         .frame(maxWidth: 480)
         .padding(Space.xxl)
+        // Centred a little above the middle (~45% of the default window's height), where the eye lands.
+        .padding(.bottom, 72)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background { Sky() }
         .onAppear { withAnimation(reduceMotion ? Motion.standard(true) : Motion.hero) { shown = true } }

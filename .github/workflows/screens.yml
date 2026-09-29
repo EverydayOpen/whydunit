@@ -1,6 +1,8 @@
 # Screenshots of the app for design review, without a Mac user: a Debug build launched with -demoScreen <name>
 # (App/Demo.swift) shows made-up sample data on that screen, and its window is captured in light and dark.
-# Artifact "screens": <screen>-<light|dark>.png. Nothing is published or committed.
+# Artifact "screens": screens/<screen>-<light|dark>.png (with the window shadow, for review) and shots/<same>.jpg
+# (no shadow, at most 110 KB, for the site's filmstrip, DESIGN.md §2.6). Nothing is published or committed: the lead
+# copies the chosen shots to site/static/shots/.
 name: screens
 
 on:
@@ -77,10 +79,10 @@ jobs:
       - name: Capture screens
         run: |
           BUNDLE="build/dd/Build/Products/Debug/$APP.app"
-          mkdir -p screens
+          mkdir -p screens "$RUNNER_TEMP/flat"
           # Without an iCloud Drive folder every screen says "iCloud Drive Is Off". Empty; nothing syncs on the runner.
           mkdir -p "$HOME/Library/Mobile Documents/com~apple~CloudDocs"
-          system_profiler SPDisplaysDataType | grep -i resolution || true   # the window is 1120×760 pt
+          system_profiler SPDisplaysDataType | grep -i resolution || true   # asks for 1120×760 pt; this screen gave 1024×692
           # The runner's screen is small: the sheet capture (a screen rectangle) otherwise has the Dock across its foot.
           defaults write com.apple.dock autohide -bool true && killall Dock || true
           for MODE in light dark; do
@@ -100,13 +102,15 @@ jobs:
               fi
               sleep 5   # entrance motion, and the sheet, which Demo shows 1 s after launch
               read -r ID RECT <<< "$("$RUNNER_TEMP/window" "$APP")"
-              OUT="screens/$SCREEN-$MODE.png"
+              OUT="screens/$SCREEN-$MODE.png" FLAT="$RUNNER_TEMP/flat/$SCREEN-$MODE.png"
               # A sheet is a window of its own, so that screen is the main window's rectangle, sheet included (no
-              # shadow). The others are the window alone, with its shadow on transparency.
+              # shadow). The others are the window alone, with its shadow on transparency, and again without it.
               if [[ $SCREEN == backUpSheet ]]; then
                 screencapture -x -R "$RECT" "$OUT"
+                cp "$OUT" "$FLAT"
               else
                 screencapture -x -l "$ID" "$OUT"
+                screencapture -x -o -l "$ID" "$FLAT"
               fi
               pkill -x "$APP"
               while pgrep -x "$APP" >/dev/null; do sleep 0.5; done
@@ -114,9 +118,28 @@ jobs:
           done
           ls -l screens
 
+      # The site shows each shot at half its pixel width (exact 2x on Retina; the runner's display is 1x). JPEG has no
+      # alpha: the site's border-radius hides the filled window corners. Quality steps down until the file fits.
+      - name: Convert shots for the site
+        run: |
+          mkdir -p shots
+          sips --formats | grep -i webp || true   # VERIFY: WebP was read-only in sips; prefer it once it's writable
+          if sips --formats | grep -i webp | grep -qi writable; then FORMAT=webp EXT=webp; else FORMAT=jpeg EXT=jpg; fi
+          for IN in "$RUNNER_TEMP"/flat/*.png; do
+            OUT="shots/$(basename "$IN" .png).$EXT"
+            for QUALITY in 82 74 66 58 50; do
+              sips -s format "$FORMAT" -s formatOptions "$QUALITY" "$IN" --out "$OUT" >/dev/null
+              if (( $(wc -c < "$OUT") <= 110 * 1024 )); then break; fi
+            done
+            (( $(wc -c < "$OUT") <= 110 * 1024 )) || echo "::warning::$OUT is over 110 KB even at quality $QUALITY"
+          done
+          ls -l shots
+
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: ${{ !cancelled() }}   # the screens taken before a failure still help
         with:
           name: screens
-          path: screens/*.png
+          path: |
+            screens/*.png
+            shots/*
           if-no-files-found: error

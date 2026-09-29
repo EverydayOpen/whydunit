@@ -43,13 +43,8 @@ struct InspectorView: View {
                 }
             }
         } header: {
-            HStack {
-                Text(title)
-                    .font(.system(size: 11, weight: .semibold))
-                    .tracking(0.6)
-                    .textCase(.uppercase)
-                    .foregroundStyle(.secondary)
-                    .accessibilityAddTraits(.isHeader)
+            HStack(alignment: .firstTextBaseline) {
+                Text(title).smallCapsHeader()   // small caps, not uppercase copy (DESIGN.md §5.2)
                 Spacer()
                 Button(copied == title ? "Copied" : "Copy") { copy(title, facts) }
                     .buttonStyle(.borderless)

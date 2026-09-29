@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import UniformTypeIdentifiers
 import WhydunitCore
 import WhydunitMac
 
@@ -9,8 +10,17 @@ struct BackupsView: View {
 
     var body: some View {
         if store.backups.isEmpty {
-            ContentUnavailableView("No Backups Yet", systemImage: "clock.arrow.circlepath",
-                                   description: Text("Backups you make are saved in “\(folderName)” and listed here."))
+            ContentUnavailableView {
+                Label {
+                    Text("No Backups Yet")
+                } icon: {
+                    Image(systemName: "clock.arrow.circlepath").symbolRenderingMode(.hierarchical).foregroundStyle(.tint)
+                }
+            } description: {
+                Text("Backups you make are saved in “\(folderName)” and listed here.")
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background { Sky() }
         } else {
             List(store.backups) { backup in
                 row(backup)
@@ -29,15 +39,17 @@ struct BackupsView: View {
 
     private var folderName: String { (store.backupsRoot.path as NSString).abbreviatingWithTildeInPath }
 
+    /// Finder's own folder icon (a Mac object, not a tile; it's the type's icon, so nothing on disk is read), the date
+    /// in mono, the size, the verification tag, then capsule actions.
     private func row(_ backup: BackupManifest) -> some View {
         HStack(spacing: Space.s) {
-            Image(systemName: "folder.fill")
-                .tile(.teal, size: 32)   // the Backups tile in the sidebar
+            Image(nsImage: NSWorkspace.shared.icon(for: .folder))
+                .resizable()
+                .frame(width: 32, height: 32)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 Text(backup.created.formatted(date: .abbreviated, time: .shortened))
-                    .font(.system(.body, design: .rounded, weight: .semibold))
-                    .monospacedDigit()
+                    .font(.system(.body, design: .monospaced, weight: .medium))
                 Text(ByteFormat.string(backup.totalBytes))
                     .font(.callout)
                     .monospacedDigit()
@@ -45,10 +57,13 @@ struct BackupsView: View {
             }
             Spacer(minLength: Space.s)
             verifiedTag(backup)
-            Button("Show in Finder") { FinderBridge.reveal([backup.folder]) }
-                .controlSize(.small)
-            Button("Move to Trash…") { pendingTrash = backup }
-                .controlSize(.small)
+            Group {
+                Button("Show in Finder") { FinderBridge.reveal([backup.folder]) }
+                Button("Move to Trash…") { pendingTrash = backup }
+            }
+            .buttonStyle(.bordered)
+            .buttonBorderShape(.capsule)
+            .controlSize(.small)
         }
         .padding(.vertical, Space.xs)
     }

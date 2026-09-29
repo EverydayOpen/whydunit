@@ -3,12 +3,15 @@ import WhydunitCore
 
 struct MainView: View {
     @Environment(AppStore.self) private var store
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// Ticks so "Scanned 2 minutes ago" stays true while nothing else changes.
     @State private var now = Date.now
+    /// No empty sidebar: the detail alone until the first diagnosis arrives (DESIGN.md §5.1). View state, not AppStore.
+    @State private var columns = NavigationSplitViewVisibility.detailOnly
 
     var body: some View {
         @Bindable var store = store
-        NavigationSplitView {
+        NavigationSplitView(columnVisibility: $columns) {
             SidebarView()
                 .navigationSplitViewColumnWidth(min: 200, ideal: 220, max: 280)
         } detail: {
@@ -30,6 +33,12 @@ struct MainView: View {
                 }
             }
             .environment(store)   // explicit, so a sheet never depends on environment inheritance
+        }
+        // A diagnosis arriving opens the sidebar; rescans keep theirs, so after that it's the user's to hide. One already
+        // there at launch (the demo screens) opens it without animating.
+        .onChange(of: store.diagnosis != nil, initial: true) { had, has in
+            guard has else { return }
+            withAnimation(had ? nil : Motion.spring(reduceMotion)) { columns = .all }
         }
         .task {
             while !Task.isCancelled {
