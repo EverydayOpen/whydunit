@@ -33,7 +33,11 @@ struct ActivityView: View {
                         }
                     }
                 }
-                .padding(Space.xl)
+                // Summary's and Backups' measure, so the outcome word stays near its row in a wide window.
+                .frame(maxWidth: 760)
+                .padding(.horizontal, Space.xl)
+                .padding(.vertical, Space.l)
+                .frame(maxWidth: .infinity)
             }
             .background { Sky() }
         }

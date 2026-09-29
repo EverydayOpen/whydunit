@@ -53,8 +53,9 @@ struct BackupsView: View {
 
     private var folderName: String { (store.backupsRoot.path as NSString).abbreviatingWithTildeInPath }
 
-    /// Finder's own folder icon (a Mac object, not a tile; it's the type's icon, so nothing on disk is read), the date
-    /// in mono, the size, the verification tag, then capsule actions.
+    /// Finder's own folder icon (a Mac object, not a tile; it's the type's icon, so nothing on disk is read), the date,
+    /// the size, the verification tag and Show in Finder (DESIGN.md §5.2). Move to Trash… is in the context menu, so
+    /// the destructive action isn't one click away on every row.
     private func row(_ backup: BackupManifest) -> some View {
         HStack(spacing: Space.s) {
             Image(nsImage: NSWorkspace.shared.icon(for: .folder))
@@ -63,7 +64,8 @@ struct BackupsView: View {
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 Text(backup.created.formatted(date: .abbreviated, time: .shortened))
-                    .font(.system(.body, design: .monospaced, weight: .medium))
+                    .font(.body.weight(.medium))
+                    .monospacedDigit()   // the digits line up without a typewriter face
                 Text(ByteFormat.string(backup.totalBytes))
                     .font(.callout)
                     .monospacedDigit()
@@ -71,15 +73,18 @@ struct BackupsView: View {
             }
             Spacer(minLength: Space.s)
             verifiedTag(backup)
-            Group {
-                Button("Show in Finder") { FinderBridge.reveal([backup.folder]) }
-                Button("Move to Trash…") { pendingTrash = backup }
-            }
-            .buttonStyle(.bordered)
-            .buttonBorderShape(.capsule)
-            .controlSize(.small)
+            Button("Show in Finder") { FinderBridge.reveal([backup.folder]) }
+                .buttonStyle(.bordered)
+                .buttonBorderShape(.capsule)
+                .controlSize(.small)
         }
         .padding(.vertical, Space.xs)
+        .contentShape(Rectangle())   // the whole row opens the menu, not just its text and icons
+        .contextMenu {
+            Button("Show in Finder") { FinderBridge.reveal([backup.folder]) }
+            Divider()
+            Button("Move to Trash…") { pendingTrash = backup }
+        }
     }
 
     /// "Verified · 14 items", or "12 of 14 verified" in orange when a copy didn't verify.

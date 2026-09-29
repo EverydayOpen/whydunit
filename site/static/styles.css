@@ -25,10 +25,10 @@
      Only behind objects: the hero, the pair tile, the fixes' wells, the finale and the download icon. */
   --wp-1: #1a47c9; --wp-2: #3f82f2; --wp-3: #9cc8ff; --wp-4: #fbe3cf;
   --wp-hi: rgb(160 205 255 / .9); --wp-cloud: rgb(255 255 255 / .78); --wp-glow: rgb(255 214 170 / .7);
-  --wp-ink: 6 24 80; --glass-lite: rgb(255 255 255 / .82); --menubar: rgb(255 255 255 / .22);
+  --wp-ink: 6 24 80; --glass-lite: rgb(255 255 255 / .82); --menubar: rgb(255 255 255 / .22); --wp-rim: rgb(var(--ink) / .2);
   --wallpaper: radial-gradient(70% 45% at 50% 108%, var(--wp-glow), transparent 70%),
-    radial-gradient(38% 22% at 14% 96%, var(--wp-cloud), transparent 72%), radial-gradient(44% 26% at 52% 104%, var(--wp-cloud), transparent 72%),
-    radial-gradient(34% 20% at 88% 98%, var(--wp-cloud), transparent 72%), radial-gradient(60% 50% at 82% -8%, var(--wp-hi), transparent 65%),
+    radial-gradient(46% 18% at 6% 58%, var(--wp-cloud), transparent 70%), radial-gradient(44% 26% at 52% 104%, var(--wp-cloud), transparent 72%),
+    radial-gradient(44% 16% at 96% 66%, var(--wp-cloud), transparent 70%), radial-gradient(60% 50% at 82% -8%, var(--wp-hi), transparent 65%),
     linear-gradient(176deg, var(--wp-1), var(--wp-2) 42%, var(--wp-3) 74%, var(--wp-4));
   --cap-top: #ffffff; --cap-bot: #f4f6fa;
   --cap: inset 0 1px 0 var(--hi), 0 0 0 .5px rgb(var(--ink) / .18), 0 1px 2px rgb(var(--ink) / .08), 0 4px 10px -4px rgb(var(--ink) / .12);
@@ -60,9 +60,9 @@
     --line: #262b35; --header: rgb(17 20 25 / .72); --hi: rgb(255 255 255 / .06); --ink: 0 0 0;
     --ok: #30d158; --warn: #ff9f0a; --bad: #ff453a;
     /* The same sky at night: ink-blue, a violet horizon, faint cloud banks. */
-    --wp-1: #04070f; --wp-2: #10245f; --wp-3: #2a4db3; --wp-4: #3a2c6e;
-    --wp-hi: rgb(90 130 255 / .5); --wp-cloud: rgb(150 170 255 / .2); --wp-glow: rgb(170 120 255 / .35);
-    --wp-ink: 0 0 0; --glass-lite: rgb(40 42 48 / .82); --menubar: rgb(0 0 0 / .28);
+    --wp-1: #0b1a45; --wp-2: #1b3a94; --wp-3: #3b62c9; --wp-4: #4a3a8a;
+    --wp-hi: rgb(120 160 255 / .7); --wp-cloud: rgb(150 170 255 / .2); --wp-glow: rgb(170 120 255 / .35);
+    --wp-ink: 0 0 0; --glass-lite: rgb(40 42 48 / .82); --menubar: rgb(255 255 255 / .08); --wp-rim: rgb(255 255 255 / .12);
     --cap-top: #1d212a; --cap-bot: #171a22;
     --cap: inset 0 1px 0 rgb(255 255 255 / .07), 0 0 0 1px rgb(255 255 255 / .09), 0 6px 16px -8px rgb(0 0 0 / .7);
     --z1: 0 0 0 1px rgb(255 255 255 / .07), 0 1px 2px rgb(0 0 0 / .5);
@@ -159,7 +159,7 @@ main > section { padding-block: clamp(64px, 8vw, 112px); }
 .stage { position: relative; isolation: isolate; --tilt: 5deg; perspective: var(--persp-scene); }
 .stage.daylight { max-width: 1240px; margin: 32px auto 0; padding: 104px 5% 0; perspective-origin: 50% 20%; }
 .stage.daylight::before { content: ""; position: absolute; z-index: -2; inset: 0 0 16%; border-radius: var(--r-xl); background: var(--grain), var(--wallpaper);
-  box-shadow: inset 0 0 0 .5px rgb(var(--ink) / .2), inset 0 1px 0 rgb(255 255 255 / .25); }
+  box-shadow: inset 0 0 0 .5px var(--wp-rim), inset 0 1px 0 rgb(255 255 255 / .25); }
 .menubar { position: absolute; inset: 0 0 auto; z-index: -1; display: flex; gap: 20px; align-items: center; height: 28px; margin: 0; padding: 0 18px; border-radius: var(--r-xl) var(--r-xl) 0 0; background: var(--menubar); color: #fff; font: 400 13px/1 var(--font); letter-spacing: 0; }
 .menubar b { font-weight: 600; }
 .menubar time { margin-left: auto; }
@@ -253,8 +253,9 @@ main > section { padding-block: clamp(64px, 8vw, 112px); }
   .metrics small { font-size: 11px; }
   .row { grid-template-columns: 28px minmax(0, 1fr) auto; gap: 10px; padding-inline: 12px; }
   .row > i { display: none; }
+  .hero h1 .dim { display: block; }
 }
-@media (max-width: 479px) { .stage.daylight { margin-inline: -16px; } }
+@media (max-width: 479px) { .stage.daylight { margin-inline: -16px; } .foot .tag { order: -1; } .foot:has(.tag)::before { content: ""; flex-basis: 100%; } }   /* SHA-256 on its own row, buttons together */
 /* Proof strip: hairlines only, no box. */
 .hero + .proof-sec { padding-block: 0 clamp(40px, 6vw, 72px); }
 .proof { display: grid; grid-template-columns: repeat(4, 1fr); margin: 0; border-block: 1px solid var(--line); }
@@ -268,7 +269,7 @@ main > section { padding-block: clamp(64px, 8vw, 112px); }
 @media (min-width: 900px) { .split { grid-template-columns: 5fr 7fr; gap: 64px; } }
 .split h2 { margin-bottom: 20px; }
 .pair { display: grid; align-content: center; min-height: 320px; padding: 40px clamp(20px, 6%, 48px); border-radius: var(--r-l); perspective: var(--persp-card); background: var(--grain), var(--wallpaper);
-  box-shadow: inset 0 0 0 .5px rgb(var(--ink) / .2), inset 0 1px 0 rgb(255 255 255 / .25); }
+  box-shadow: inset 0 0 0 .5px var(--wp-rim), inset 0 1px 0 rgb(255 255 255 / .25); }
 .claim { width: 86%; font-size: 14px; }
 .claim .f-bar b { font-size: 12px; color: var(--text-2); }
 .claim .f-row { height: 40px; }
@@ -292,7 +293,7 @@ main > section { padding-block: clamp(64px, 8vw, 112px); }
 .stack { display: flex; flex-direction: column; gap: 24px; }
 .feature { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 10px; border-radius: var(--r-xl); background: var(--card); box-shadow: var(--z2); }
 .feature .media { display: grid; grid-template-columns: minmax(0, 1fr); place-items: center; min-height: 360px; padding: clamp(20px, 5%, 48px); border-radius: var(--r-l); background: var(--grain), var(--wallpaper);
-  box-shadow: inset 0 0 0 .5px rgb(var(--ink) / .2), inset 0 1px 0 rgb(255 255 255 / .25); }
+  box-shadow: inset 0 0 0 .5px var(--wp-rim), inset 0 1px 0 rgb(255 255 255 / .25); }
 .feature .text { display: flex; flex-direction: column; justify-content: center; padding: 20px 22px 24px; }
 .index { margin: 0 0 18px; color: var(--accent); font: 500 13px/1 var(--font-mono); }
 .feature h3 { margin: 0 0 14px; font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem); line-height: 1.1; letter-spacing: -.025em; }

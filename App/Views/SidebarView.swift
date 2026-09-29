@@ -4,6 +4,8 @@ import WhydunitCore
 struct SidebarView: View {
     @Environment(AppStore.self) private var store
     @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiate
+    /// Focused everywhere but finding pages (their table takes focus), so the selected row is the accent pill, not gray.
+    @FocusState private var focused: Bool
 
     var body: some View {
         @Bindable var store = store
@@ -29,6 +31,11 @@ struct SidebarView: View {
             }
         }
         .listStyle(.sidebar)
+        .focused($focused)   // VERIFY on macOS 15 and 26: a sidebar List honours .focused and the selection turns accent
+        // Not before the first diagnosis: the sidebar is hidden then, and focus would go to a list nobody can see.
+        .onChange(of: store.diagnosis != nil && !store.isFindingRoute, initial: true) { _, take in
+            if take { focused = true }
+        }
         // A click on the blank area (or ⌘-click on the selected row) clears the selection; like Mail, keep one.
         .onChange(of: store.route) { old, new in
             if new == nil { store.route = old ?? .summary }

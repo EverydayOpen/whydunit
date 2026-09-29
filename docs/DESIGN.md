@@ -307,23 +307,21 @@ private struct Surface: ViewModifier {
 }
 
 /// An object standing on a glossy floor: the view, its mirror fading out over 45% of its height, and a still
-/// contact shadow. Drawn once. Pass a stateless view: it is drawn twice. None of the mirror under Reduce Transparency.
+/// contact shadow. Drawn once. Pass a stateless view: it is drawn twice. The mirror is a faint drawing of an opaque
+/// image, not a material, so it stays under Reduce Transparency.
 struct OnFloor<Content: View>: View {
     var height: CGFloat
     @ViewBuilder var content: Content
-    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     var body: some View {
         VStack(spacing: 2) {
             content
-            if !reduceTransparency {
-                content
-                    .scaleEffect(x: 1, y: -1)
-                    .frame(height: height * 0.45, alignment: .top).clipped()
-                    .mask(LinearGradient(colors: [.black.opacity(0.22), .clear], startPoint: .top, endPoint: .bottom))
-                    .allowsHitTesting(false)
-                    .accessibilityHidden(true)
-            }
+            content
+                .scaleEffect(x: 1, y: -1)
+                .frame(height: height * 0.45, alignment: .top).clipped()
+                .mask(LinearGradient(colors: [.black.opacity(0.22), .clear], startPoint: .top, endPoint: .bottom))
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
         }
         .background(alignment: .center) {
             Ellipse().fill(.black.opacity(0.16)).frame(width: height * 0.7, height: height * 0.08).blur(radius: 6)
@@ -419,7 +417,8 @@ Materials and glass handle Reduce Transparency themselves.
 - Decorative layers (`Horizon`, the mirror, contact shadows) are `accessibilityHidden`. Labels, traits and combined
   elements from MOTION §1.5 are unchanged; severity always carries its word.
 - Increase Contrast: surfaces get a 1pt primary stroke, `Horizon` loses its pool, `Sky`/`Bay` become the plain
-  window. Reduce Transparency: no mirrors, materials go solid. Reduce Motion: MOTION §1.5 exactly.
+  window. Reduce Transparency: materials go solid; mirrors stay (drawings, not materials). Reduce Motion: MOTION §1.5
+  exactly.
 
 ## 4. Whydunit website: Daylight
 
@@ -668,11 +667,12 @@ if contrast != .increased {
 `ProgressView` 280pt wide; the count in `.system(.callout, design: .rounded).monospacedDigit()`.
 
 **Summary.** The `Form` becomes `ScrollView { VStack(spacing: Space.l) }` at `frame(maxWidth: 760)`, on `Sky`.
-1. **Verdict plate** (`.surface(18)`, the one lifted object; `flipIn` as MOTION §3.4): top row
-   `SeverityIcon(tile: true, size: 52)`, the title at 22pt semibold `tracking(-0.3)`, the meta line in secondary
-   `monospacedDigit`, Copy Diagnosis trailing as `.bordered` small; a 0.5pt hairline; then a 3-column row of
-   `Metric`s separated by vertical hairlines: `Metric("Checked", "4,213")`, `Metric("Need attention", "4", dot:
-   .orange)`, `Metric("Only on this Mac", "2.1", unit: "GB")`. Values always `.primary`.
+1. **Verdict plate** (`.surface(18)`, the one lifted object; `flipIn` as MOTION §3.4): top row the verdict's
+   symbol in its colour in a 52pt neutral `well` (no filled tile, §1.1 rule 4), the title at 22pt semibold
+   `tracking(-0.3)`, the meta line in secondary `monospacedDigit`, Copy Diagnosis trailing as `.bordered` small; a
+   0.5pt hairline; then a 3-column row of `Metric`s separated by vertical hairlines: `Metric("Checked", "4,213")`,
+   `Metric("Need attention", "4", dot: .orange)`, `Metric("Only on this Mac", "2.1", unit: "GB")`. Values always
+   `.primary`.
 2. **Findings in two surfaces:** small-caps headers "Needs attention" (warning and critical) and "Good to know"
    (info). View-level grouping; the data flow is unchanged. Rows (≥ 52pt) separated by 0.5pt hairlines inset 56pt:
    a 28pt neutral `well` with the rule's symbol in the severity tint; the title 13pt semibold; the explanation 12pt
@@ -696,8 +696,8 @@ the file. The preflight block: green `checkmark.circle.fill` rows with mono fact
 at 12pt radius. Capsule buttons, step dots top right, Done shows `checkmark.seal.fill` 40pt with one bounce (none
 under Reduce Motion) and `Tag("SHA-256", tint: .green)`.
 
-**Backups.** A native list; rows: folder glyph, the date in mono, `Tag("Verified · 14 items", tint: .green)`, Show
-in Finder.
+**Backups.** A native list; rows: folder glyph, the date with tabular digits, `Tag("Verified · 14 items", tint:
+.green)`, Show in Finder; Move to Trash… only in the row's context menu.
 
 **Activity.** A timeline in a `LazyVStack`: a 64pt mono time column, a 1pt `.separator` rail, an 8pt dot per event
 kind, the text; days grouped under small-caps headers.

@@ -251,12 +251,11 @@ private struct Surface: ViewModifier {
 }
 
 /// An app icon standing on a glossy floor: the view, its mirror fading out over 45% of its height, and a still
-/// contact shadow at its base. Drawn once. Pass a stateless view: it is drawn twice. No mirror under Reduce
-/// Transparency (the screens captures have none, so the runner reports it on: VERIFY the mirror on a Mac).
+/// contact shadow at its base. Drawn once. Pass a stateless view: it is drawn twice. The mirror is a faint drawing
+/// of an opaque image, not a material, so it stays under Reduce Transparency. VERIFY the mirror in the screens capture.
 struct OnFloor<Content: View>: View {
     var height: CGFloat
     @ViewBuilder var content: Content
-    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     var body: some View {
         // The icon canvas has a ~10% transparent margin: the visible base is at 90%, so the shadow is centred there
@@ -268,14 +267,12 @@ struct OnFloor<Content: View>: View {
                         .offset(y: -height * 0.06)
                         .accessibilityHidden(true)
                 }
-            if !reduceTransparency {
-                content
-                    .scaleEffect(x: 1, y: -1)
-                    .frame(height: height * 0.45, alignment: .top).clipped()
-                    .mask { LinearGradient(colors: [.black.opacity(0.22), .clear], startPoint: .top, endPoint: .bottom) }
-                    .allowsHitTesting(false)
-                    .accessibilityHidden(true)
-            }
+            content
+                .scaleEffect(x: 1, y: -1)
+                .frame(height: height * 0.45, alignment: .top).clipped()
+                .mask { LinearGradient(colors: [.black.opacity(0.22), .clear], startPoint: .top, endPoint: .bottom) }
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
         }
     }
 }
@@ -318,7 +315,8 @@ struct Metric: View {
             // The dot on the label line, as in Tag: next to the number it read as a decimal point.
             HStack(spacing: 5) {
                 if let dot { Circle().fill(dot).frame(width: 6, height: 6).accessibilityHidden(true) }
-                Text(label).font(.caption.weight(.semibold).smallCaps()).foregroundStyle(.secondary)   // VERIFY small caps with SF
+                // 11 pt (.subheadline on macOS; .footnote and .caption are both 10), tracked like smallCapsHeader().
+                Text(label).font(.subheadline.weight(.semibold).smallCaps()).tracking(0.5).foregroundStyle(.secondary)
             }
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text(value).font(.system(size: 26, weight: .semibold, design: design)).monospacedDigit()

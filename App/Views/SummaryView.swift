@@ -53,11 +53,16 @@ struct SummaryView: View {
         VStack(alignment: .leading, spacing: Space.m) {
             HStack(spacing: Space.m) {
                 HStack(spacing: Space.m) {
-                    // VERIFY: both symbol effects reach the Image inside SeverityIcon's tile.
-                    SeverityIcon(severity: diagnosis.verdict, size: 52, tile: true)
+                    // Colour only in the glyph, in a neutral well like the finding page's header (DESIGN.md §1.1 rule 4).
+                    // The symbol's shape differs per severity, so it reads without colour too.
+                    Image(systemName: diagnosis.verdict.symbol)
+                        .font(.system(size: 24, weight: .semibold))
+                        .foregroundStyle(diagnosis.verdict.color)
                         .contentTransition(.symbolEffect(.replace))          // the verdict changed on a rescan
                         .symbolEffect(.bounce, value: diagnosis.scannedAt)   // a new result landed
                         .symbolEffectsRemoved(reduceMotion)
+                        .accessibilityLabel(diagnosis.verdict.word)
+                        .well(.secondary, size: 52)
                     VStack(alignment: .leading, spacing: Space.xxs) {
                         Text(diagnosis.headline?.title ?? "No problems found")
                             .font(.system(size: 22, weight: .semibold))
