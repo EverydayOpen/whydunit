@@ -63,10 +63,12 @@ struct SummaryView: View {
                             .font(.system(size: 22, weight: .semibold))
                             .tracking(-0.3)
                             .fixedSize(horizontal: false, vertical: true)
-                        Text(meta)
-                            .font(.callout)
-                            .monospacedDigit()
-                            .foregroundStyle(.secondary)
+                        if !meta.isEmpty {
+                            Text(meta)
+                                .font(.callout)
+                                .monospacedDigit()
+                                .foregroundStyle(.secondary)
+                        }
                         if case .failed(let message) = store.scanState {
                             Text("The last scan didn't finish: \(message)")
                                 .font(.callout)
@@ -167,12 +169,10 @@ struct SummaryView: View {
 
     private var attentionCount: Int { diagnosis.findings.filter { $0.severity >= .warning }.count }
 
-    /// "4,213 items checked · 2 need attention · 3 items with no sync status · 1 folder couldn't be checked",
-    /// zero parts left out.
+    /// "3 items with no sync status · 1 folder couldn't be checked", zero parts left out. The checked and attention
+    /// counts are the metrics right under it.
     private var meta: String {
-        let attention = attentionCount
-        var parts = ["\(itemCount(diagnosis.checkedCount)) checked"]
-        if attention > 0 { parts.append(attention == 1 ? "1 needs attention" : "\(attention) need attention") }
+        var parts: [String] = []
         if diagnosis.unknownCount > 0 { parts.append("\(itemCount(diagnosis.unknownCount)) with no sync status") }
         if let f = diagnosis.findings.first(where: { $0.rule == .unreadableFolders }) {
             let n = f.itemPaths.count

@@ -6,14 +6,17 @@ struct DetailView: View {
     @Environment(AppStore.self) private var store
 
     var body: some View {
-        // The stage screens let their Sky run up under the toolbar, as in Music and Photos (DESIGN.md §5.1). Activity is
-        // a plain list that scrolls under it, so it keeps the system's toolbar background.
-        switch store.route ?? .summary {
-        case .summary: summary.navigationTitle(store.diagnosis == nil ? "Whydunit" : "Summary").toolbarBackground(.hidden, for: .windowToolbar)
-        case .finding(let rule): FindingDetailView(rule: rule).navigationTitle(rule.shortName).toolbarBackground(.hidden, for: .windowToolbar)
-        case .backups: BackupsView().navigationTitle("Backups").toolbarBackground(.hidden, for: .windowToolbar)
-        case .activity: ActivityView().navigationTitle("Activity")
+        // Every screen lets its Sky run up under the toolbar, as in Music and Photos (DESIGN.md §5.1). On macOS 26 the
+        // scroll-edge effect keeps the title legible over the lists that scroll under it.
+        Group {
+            switch store.route ?? .summary {
+            case .summary: summary.navigationTitle(store.diagnosis == nil ? "Whydunit" : "Summary")
+            case .finding(let rule): FindingDetailView(rule: rule).navigationTitle(rule.shortName)
+            case .backups: BackupsView().navigationTitle("Backups")
+            case .activity: ActivityView().navigationTitle("Activity")
+            }
         }
+        .toolbarBackground(.hidden, for: .windowToolbar)
     }
 
     @ViewBuilder private var summary: some View {

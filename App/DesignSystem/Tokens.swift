@@ -208,12 +208,14 @@ struct Sky: View {
 }
 
 extension View {
-    /// The Sky behind a screen shown while the sidebar may be collapsed (Welcome, first scan, empty and error states).
-    /// A view background alone came out blank with the split view at .detailOnly, so it is painted at window level
-    /// too. VERIFY on a Mac: the collapsed detail column is transparent over the window background.
+    /// The Sky behind a screen that doesn't scroll (Welcome, first scan, empty and error states). A layout child, not a
+    /// background: as `.background` (and as `.containerBackground(for: .window)`) it came out blank with the split
+    /// view at .detailOnly. VERIFY in the screens capture.
     func skyBackdrop() -> some View {
-        background { Sky() }
-            .containerBackground(for: .window) { Sky() }   // .window is macOS 15
+        ZStack {
+            Sky()
+            self
+        }
     }
 }
 
@@ -248,20 +250,22 @@ private struct Surface: ViewModifier {
     }
 }
 
-/// An object standing on a glossy floor: the view, its mirror fading out over 45% of its height, and a still
+/// An app icon standing on a glossy floor: the view, its mirror fading out over 45% of its height, and a still
 /// contact shadow at its base. Drawn once. Pass a stateless view: it is drawn twice. No mirror under Reduce
-/// Transparency.
+/// Transparency (the screens captures have none, so the runner reports it on: VERIFY the mirror on a Mac).
 struct OnFloor<Content: View>: View {
     var height: CGFloat
     @ViewBuilder var content: Content
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     var body: some View {
-        VStack(spacing: 2) {
+        // The icon canvas has a ~10% transparent margin: the visible base is at 90%, so the shadow is centred there
+        // and the mirror is reflected about it (it overlaps both margins, 20%).
+        VStack(spacing: -height * 0.2) {
             content
                 .background(alignment: .bottom) {
                     Ellipse().fill(.black.opacity(0.16)).frame(width: height * 0.7, height: height * 0.08).blur(radius: 6)
-                        .offset(y: height * 0.04)   // centred on the base line. VERIFY by eye under an app icon
+                        .offset(y: -height * 0.06)
                         .accessibilityHidden(true)
                 }
             if !reduceTransparency {

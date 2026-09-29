@@ -20,9 +20,9 @@ struct WelcomeView: View {
             .offset(y: shown || reduceMotion ? 0 : 16)
             .opacity(shown ? 1 : 0)
             .background(alignment: .top) {
-                // Horizon's line runs through its middle (360 × 0.32 = 115pt tall): here, on the icon's base at 128pt.
+                // Horizon's line runs through its middle (360 × 0.32 = 115pt tall): here, on the icon's base.
                 Horizon(tint: .accentColor, width: 360)
-                    .offset(y: 128 - 58)
+                    .offset(y: 128 * 0.9 - 58)   // the icon canvas has a ~10% transparent margin: the visible base is at 90%
                     .opacity(shown ? 1 : 0)
             }
             .accessibilityHidden(true)
@@ -41,10 +41,10 @@ struct WelcomeView: View {
                 .keyboardShortcut(.defaultAction)
                 .padding(.top, Space.xs)
             ViewThatFits {
-                HStack(spacing: Space.l) { facts }
+                HStack(spacing: Space.xl) { facts }
                 VStack(spacing: Space.xs) { facts }
             }
-            .font(.caption.weight(.medium))
+            .font(.callout.weight(.medium))   // not DESIGN §5.2's .caption: the promises are the pitch, 10pt is illegible at 1x
             .foregroundStyle(.secondary)
             .padding(.top, Space.xs)
         }

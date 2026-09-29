@@ -36,8 +36,7 @@ struct FindingDetailView: View {
                     .buttonStyle(.borderedProminent)
                     .buttonBorderShape(.capsule)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background { Sky() }
+            .skyBackdrop()
         }
     }
 

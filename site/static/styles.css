@@ -1,7 +1,7 @@
 /* Whydunit site, "Daylight" (docs/DESIGN.md §4; motion: docs/MOTION.md). build_site.py --check reads exactly the two
    token blocks below (light, then dark) and measures text contrast (WCAG AA) in both. Other overrides use html[lang].
    Type ladder (docs/DESIGN.md §2.2). Display = var(--font-display) 600; everything else = var(--font).
-   h1       display  clamp(2.75rem, 1.5rem + 4.8vw, 5.25rem) / 1.0,  -.038em, text-wrap: balance
+   h1       display  clamp(2.75rem, 1.5rem + 4.8vw, 4.5rem)  / 1.0,  -.038em, text-wrap: balance
    h2       display  clamp(2rem, 1.35rem + 2.6vw, 3.25rem)   / 1.04, -.032em, balance
    feature  display  clamp(1.5rem, 1.2rem + 1vw, 2rem)       / 1.1,  -.025em
    card h3  system   17px / 1.3, -.015em, 600
@@ -23,10 +23,10 @@
   --ok: #34c759; --warn: #ff9f0a; --bad: #ff3b30;
   /* The world, "iCloud dawn": deep cobalt sky, pale middle, one warm horizon glow (the key light), cloud banks.
      Only behind objects: the hero, the pair tile, the fixes' wells, the finale and the download icon. */
-  --wp-1: #1a47c9; --wp-2: #3f82f2; --wp-3: #9cc8ff; --wp-4: #eaf1ff;
-  --wp-hi: rgb(160 205 255 / .9); --wp-cloud: rgb(255 255 255 / .78); --wp-glow: rgb(255 226 190 / .42);
+  --wp-1: #1a47c9; --wp-2: #3f82f2; --wp-3: #9cc8ff; --wp-4: #fbe3cf;
+  --wp-hi: rgb(160 205 255 / .9); --wp-cloud: rgb(255 255 255 / .78); --wp-glow: rgb(255 214 170 / .7);
   --wp-ink: 6 24 80; --glass-lite: rgb(255 255 255 / .82); --menubar: rgb(255 255 255 / .22);
-  --wallpaper: radial-gradient(56% 28% at 50% 104%, var(--wp-glow), transparent 70%),
+  --wallpaper: radial-gradient(70% 45% at 50% 108%, var(--wp-glow), transparent 70%),
     radial-gradient(38% 22% at 14% 96%, var(--wp-cloud), transparent 72%), radial-gradient(44% 26% at 52% 104%, var(--wp-cloud), transparent 72%),
     radial-gradient(34% 20% at 88% 98%, var(--wp-cloud), transparent 72%), radial-gradient(60% 50% at 82% -8%, var(--wp-hi), transparent 65%),
     linear-gradient(176deg, var(--wp-1), var(--wp-2) 42%, var(--wp-3) 74%, var(--wp-4));
@@ -85,7 +85,7 @@ img { height: auto; }
 svg { stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }   /* sprite icons inherit these */
 h1, h2, h3 { margin: 0 0 .5em; }
 h1, h2, .display, .feature h3, .proof dd, .brand { font-family: var(--font-display); font-weight: 600; }
-h1 { font-size: clamp(2.75rem, 1.5rem + 4.8vw, 5.25rem); line-height: 1; letter-spacing: -.038em; text-wrap: balance; }
+h1 { font-size: clamp(2.75rem, 1.5rem + 4.8vw, 4.5rem); line-height: 1; letter-spacing: -.038em; text-wrap: balance; }
 h2 { font-size: clamp(2rem, 1.35rem + 2.6vw, 3.25rem); line-height: 1.04; letter-spacing: -.032em; text-wrap: balance; }
 h3 { font-size: 17px; font-weight: 600; line-height: 1.3; letter-spacing: -.015em; }
 p { margin: 0 0 1em; }
@@ -110,7 +110,7 @@ main:focus { outline: none; }
 .eyebrow { margin: 0 0 16px; color: var(--accent); font-size: 13px; font-weight: 600; }
 .label { font: 600 13px/1.3 var(--font); font-variant-caps: all-small-caps; letter-spacing: .04em; color: var(--text-2); }
 main > section { padding-block: clamp(64px, 8vw, 112px); }
-.actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 36px 0 18px; }
+.actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 28px 0 14px; }
 .facts { margin: 0; font-size: 13px; font-weight: 500; color: var(--text-2); }
 /* Header: the pill, the only backdrop-filter on the page. */
 .site-header { position: sticky; top: 0; z-index: 10; padding: 10px 12px 0; }
@@ -152,12 +152,12 @@ main > section { padding-block: clamp(64px, 8vw, 112px); }
 @media (min-width: 900px) { .sec-head { grid-template-columns: 7fr 5fr; } }
 .sec-head h2, .sec-head .lede { margin: 0; }
 /* Hero (DESIGN.md §4.3): still copy, then the desktop diorama. */
-.hero { overflow: clip; padding-block: clamp(40px, 5vw, 64px) clamp(64px, 8vw, 112px); }
+.hero { overflow: clip; padding-block: clamp(32px, 4vw, 48px) clamp(64px, 8vw, 112px); }
 .hero h1 { max-width: 14em; margin-inline: auto; }
 .hero .lede { margin-top: 24px; }
 .caption { margin: 28px 0 0; font-size: 13px; color: var(--text-2); text-align: center; }
 .stage { position: relative; isolation: isolate; --tilt: 5deg; perspective: var(--persp-scene); }
-.stage.daylight { max-width: 1240px; margin: clamp(40px, 5vw, 56px) auto 0; padding: 120px 5% 0; perspective-origin: 50% 20%; }
+.stage.daylight { max-width: 1240px; margin: 32px auto 0; padding: 104px 5% 0; perspective-origin: 50% 20%; }
 .stage.daylight::before { content: ""; position: absolute; z-index: -2; inset: 0 0 16%; border-radius: var(--r-xl); background: var(--grain), var(--wallpaper);
   box-shadow: inset 0 0 0 .5px rgb(var(--ink) / .2), inset 0 1px 0 rgb(255 255 255 / .25); }
 .menubar { position: absolute; inset: 0 0 auto; z-index: -1; display: flex; gap: 20px; align-items: center; height: 28px; margin: 0; padding: 0 18px; border-radius: var(--r-xl) var(--r-xl) 0 0; background: var(--menubar); color: #fff; font: 400 13px/1 var(--font); letter-spacing: 0; }
@@ -171,7 +171,7 @@ main > section { padding-block: clamp(64px, 8vw, 112px); }
 /* Finder, behind (the problem). Also the pair tile's row. */
 .finder, .claim { overflow: hidden; border-radius: 14px; background: var(--win-bg); color: var(--text); font-size: 12px; line-height: 1; letter-spacing: 0;
   box-shadow: 0 0 0 .5px rgb(0 0 0 / .22), 0 18px 40px -12px rgb(var(--wp-ink) / .45); }
-.finder { position: absolute; left: -2%; top: -104px; width: 46%; margin: 0; transform: translateZ(-120px); }
+.finder { position: absolute; left: -2%; top: -76px; width: 46%; margin: 0; transform: translateZ(-120px); }
 .finder p, .claim p { margin: 0; }
 .f-bar { display: flex; align-items: center; gap: 12px; height: 40px; padding: 0 14px; background: var(--win-side); box-shadow: inset 0 -.5px 0 var(--win-line); }
 .f-bar > svg { width: 14px; height: 14px; color: var(--text-2); }
@@ -272,7 +272,7 @@ main > section { padding-block: clamp(64px, 8vw, 112px); }
 .claim { width: 86%; font-size: 14px; }
 .claim .f-bar b { font-size: 12px; color: var(--text-2); }
 .claim .f-row { height: 40px; }
-.finder .f-row:nth-child(n+4) > span, .claim .f-row:last-child > span { visibility: hidden; }   /* covered rows: no glyph slivers at the window's corner */
+.finder .f-row:nth-child(n+4) > *, .claim .f-row:last-child > * { visibility: hidden; }   /* covered rows: no glyph slivers at the window's corner */
 .pair .finding { margin: -32px 0 0 10%; padding: 18px 20px 20px; border-radius: var(--r-m); box-shadow: var(--shadow); }
 .said { margin: 0 0 10px; color: var(--text-2); font-size: 13px; font-weight: 600; }
 .said .tag { margin-left: 6px; }
@@ -290,7 +290,7 @@ main > section { padding-block: clamp(64px, 8vw, 112px); }
 .steps p { margin: 0; color: var(--text-2); font-size: 15px; line-height: 1.5; }
 /* Three fixes: sticky stacking cards, CSS only. Flex, not grid: a grid item's own row would stop it sticking. */
 .stack { display: flex; flex-direction: column; gap: 24px; }
-.feature { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 10px; border-radius: var(--r-xl); background: var(--card); box-shadow: var(--z2); }
+.feature { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 10px; border-radius: var(--r-xl); background: var(--card); box-shadow: var(--z2); }
 .feature .media { display: grid; grid-template-columns: minmax(0, 1fr); place-items: center; min-height: 360px; padding: clamp(20px, 5%, 48px); border-radius: var(--r-l); background: var(--grain), var(--wallpaper);
   box-shadow: inset 0 0 0 .5px rgb(var(--ink) / .2), inset 0 1px 0 rgb(255 255 255 / .25); }
 .feature .text { display: flex; flex-direction: column; justify-content: center; padding: 20px 22px 24px; }
@@ -299,6 +299,9 @@ main > section { padding-block: clamp(64px, 8vw, 112px); }
 .feature .text p:not(.index, .promise) { margin: 0; color: var(--text-2); }
 .promise { display: flex; align-items: center; gap: 9px; margin: 24px 0 0; padding-top: 18px; border-top: 1px solid var(--line); font: 500 13px/1.3 var(--font-mono); }
 .promise::before { content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
+/* A covered card dims under a veil, never opacity: an opaque card must not show the one beneath it. */
+@property --veil { syntax: "<number>"; inherits: true; initial-value: 0; }   /* inherits: ::after reads the card's animated value */
+.feature::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--bg); opacity: var(--veil); pointer-events: none; }
 @media (min-width: 900px) {
   .feature { position: sticky; top: 88px; grid-template-columns: 7fr 5fr; min-height: 460px; }
   .feature:nth-child(2) { top: 102px; grid-template-columns: 5fr 7fr; }
@@ -471,7 +474,7 @@ tbody th { font-weight: 600; }
 @keyframes rise { from { opacity: 0; translate: 0 32px; rotate: x 10deg; } }
 @keyframes unfold { from { opacity: 0; translate: 0 -6px; rotate: x -12deg; } }
 @keyframes coin { from { opacity: 0; transform: perspective(400px) rotateY(-90deg); } }
-@keyframes cover { to { opacity: .6; } }
+@keyframes cover { to { --veil: .45; scale: .97; } }
 /* Accessibility media (DESIGN.md §2.7). html[lang] (0,1,1) beats the token blocks (0,1,0) whatever the order. */
 @media (prefers-contrast: more) {
   html[lang] { --grain: none; --glare: transparent; }

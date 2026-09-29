@@ -18,8 +18,7 @@ struct ActivityView: View {
             } description: {
                 Text("Every change Whydunit makes, like a backup or a retried upload, is listed here.")
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background { Sky() }
+            .skyBackdrop()
         } else {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 0) {
@@ -36,6 +35,7 @@ struct ActivityView: View {
                 }
                 .padding(Space.xl)
             }
+            .background { Sky() }
         }
     }
 

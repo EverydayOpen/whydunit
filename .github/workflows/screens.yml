@@ -85,6 +85,9 @@ jobs:
           system_profiler SPDisplaysDataType | grep -i resolution || true   # asks for 1120×760 pt; this screen gave 1024×692
           # The runner's screen is small: the sheet capture (a screen rectangle) otherwise has the Dock across its foot.
           defaults write com.apple.dock autohide -bool true && killall Dock || true
+          # No mouse or trackpad on the runner, so macOS shows always-on legacy scroll bars. Each screen is a fresh
+          # launch, which reads the global domain.
+          defaults write -g AppleShowScrollBars -string WhenScrolling
           for MODE in light dark; do
             for SCREEN in welcome summary finding backups activity backUpSheet; do
               # -F: no restored windows. Demo sets the look itself: the global AppleInterfaceStyle default didn't.

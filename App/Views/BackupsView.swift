@@ -19,8 +19,7 @@ struct BackupsView: View {
             } description: {
                 Text("Backups you make are saved in “\(folderName)” and listed here.")
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background { Sky() }
+            .skyBackdrop()
         } else {
             // One porcelain group like Summary's, on the Sky, instead of a bare system list.
             ScrollView {
