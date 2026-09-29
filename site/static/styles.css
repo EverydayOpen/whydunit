@@ -23,10 +23,10 @@
   --ok: #34c759; --warn: #ff9f0a; --bad: #ff3b30;
   /* The world, "iCloud dawn": deep cobalt sky, pale middle, one warm horizon glow (the key light), cloud banks.
      Only behind objects: the hero, the pair tile, the fixes' wells, the finale and the download icon. */
-  --wp-1: #1a47c9; --wp-2: #3f82f2; --wp-3: #9cc8ff; --wp-4: #fbe3cf;
-  --wp-hi: rgb(160 205 255 / .9); --wp-cloud: rgb(255 255 255 / .78); --wp-glow: rgb(255 214 170 / .7);
+  --wp-1: #1a47c9; --wp-2: #3f82f2; --wp-3: #9cc8ff; --wp-4: #eaf1ff;
+  --wp-hi: rgb(160 205 255 / .9); --wp-cloud: rgb(255 255 255 / .78); --wp-glow: rgb(255 226 190 / .42);
   --wp-ink: 6 24 80; --glass-lite: rgb(255 255 255 / .82); --menubar: rgb(255 255 255 / .22);
-  --wallpaper: radial-gradient(70% 45% at 50% 108%, var(--wp-glow), transparent 70%),
+  --wallpaper: radial-gradient(56% 28% at 50% 104%, var(--wp-glow), transparent 70%),
     radial-gradient(38% 22% at 14% 96%, var(--wp-cloud), transparent 72%), radial-gradient(44% 26% at 52% 104%, var(--wp-cloud), transparent 72%),
     radial-gradient(34% 20% at 88% 98%, var(--wp-cloud), transparent 72%), radial-gradient(60% 50% at 82% -8%, var(--wp-hi), transparent 65%),
     linear-gradient(176deg, var(--wp-1), var(--wp-2) 42%, var(--wp-3) 74%, var(--wp-4));
@@ -60,8 +60,8 @@
     --line: #262b35; --header: rgb(17 20 25 / .72); --hi: rgb(255 255 255 / .06); --ink: 0 0 0;
     --ok: #30d158; --warn: #ff9f0a; --bad: #ff453a;
     /* The same sky at night: ink-blue, a violet horizon, faint cloud banks. */
-    --wp-1: #04070f; --wp-2: #0b1a45; --wp-3: #1f3c8f; --wp-4: #3a2c6e;
-    --wp-hi: rgb(90 130 255 / .35); --wp-cloud: rgb(150 170 255 / .14); --wp-glow: rgb(170 120 255 / .35);
+    --wp-1: #04070f; --wp-2: #10245f; --wp-3: #2a4db3; --wp-4: #3a2c6e;
+    --wp-hi: rgb(90 130 255 / .5); --wp-cloud: rgb(150 170 255 / .2); --wp-glow: rgb(170 120 255 / .35);
     --wp-ink: 0 0 0; --glass-lite: rgb(40 42 48 / .82); --menubar: rgb(0 0 0 / .28);
     --cap-top: #1d212a; --cap-bot: #171a22;
     --cap: inset 0 1px 0 rgb(255 255 255 / .07), 0 0 0 1px rgb(255 255 255 / .09), 0 6px 16px -8px rgb(0 0 0 / .7);
@@ -109,7 +109,7 @@ main:focus { outline: none; }
 .center .lede { margin-inline: auto; }
 .eyebrow { margin: 0 0 16px; color: var(--accent); font-size: 13px; font-weight: 600; }
 .label { font: 600 13px/1.3 var(--font); font-variant-caps: all-small-caps; letter-spacing: .04em; color: var(--text-2); }
-main > section { padding-block: clamp(72px, 10vw, 136px); }
+main > section { padding-block: clamp(64px, 8vw, 112px); }
 .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 36px 0 18px; }
 .facts { margin: 0; font-size: 13px; font-weight: 500; color: var(--text-2); }
 /* Header: the pill, the only backdrop-filter on the page. */
@@ -160,8 +160,8 @@ main > section { padding-block: clamp(72px, 10vw, 136px); }
 .stage.daylight { max-width: 1240px; margin: clamp(40px, 5vw, 56px) auto 0; padding: 120px 5% 0; perspective-origin: 50% 20%; }
 .stage.daylight::before { content: ""; position: absolute; z-index: -2; inset: 0 0 16%; border-radius: var(--r-xl); background: var(--grain), var(--wallpaper);
   box-shadow: inset 0 0 0 .5px rgb(var(--ink) / .2), inset 0 1px 0 rgb(255 255 255 / .25); }
-.menubar { position: absolute; inset: 0 0 auto; z-index: -1; display: flex; gap: 20px; align-items: center; height: 28px; margin: 0; padding: 0 18px; border-radius: var(--r-xl) var(--r-xl) 0 0; background: var(--menubar); color: #fff; font: 500 13px/1 var(--font); letter-spacing: 0; }
-.menubar b { font-weight: 700; }
+.menubar { position: absolute; inset: 0 0 auto; z-index: -1; display: flex; gap: 20px; align-items: center; height: 28px; margin: 0; padding: 0 18px; border-radius: var(--r-xl) var(--r-xl) 0 0; background: var(--menubar); color: #fff; font: 400 13px/1 var(--font); letter-spacing: 0; }
+.menubar b { font-weight: 600; }
 .menubar time { margin-left: auto; }
 .scene { position: relative; transform-style: preserve-3d; }
 .lights { display: flex; gap: 8px; }
@@ -171,7 +171,7 @@ main > section { padding-block: clamp(72px, 10vw, 136px); }
 /* Finder, behind (the problem). Also the pair tile's row. */
 .finder, .claim { overflow: hidden; border-radius: 14px; background: var(--win-bg); color: var(--text); font-size: 12px; line-height: 1; letter-spacing: 0;
   box-shadow: 0 0 0 .5px rgb(0 0 0 / .22), 0 18px 40px -12px rgb(var(--wp-ink) / .45); }
-.finder { position: absolute; left: -2%; top: -84px; width: 46%; margin: 0; transform: translateZ(-120px); }
+.finder { position: absolute; left: -2%; top: -104px; width: 46%; margin: 0; transform: translateZ(-120px); }
 .finder p, .claim p { margin: 0; }
 .f-bar { display: flex; align-items: center; gap: 12px; height: 40px; padding: 0 14px; background: var(--win-side); box-shadow: inset 0 -.5px 0 var(--win-line); }
 .f-bar > svg { width: 14px; height: 14px; color: var(--text-2); }
@@ -217,7 +217,7 @@ main > section { padding-block: clamp(72px, 10vw, 136px); }
 .sev { display: grid; place-items: center; flex: none; width: 52px; height: 52px; border-radius: 13px; color: #fff; background: linear-gradient(#ffb23f, #ff8d0a); box-shadow: inset 0 1px 0 rgb(255 255 255 / .35), 0 0 0 .5px rgb(0 0 0 / .1), 0 3px 8px -2px rgb(0 0 0 / .2); }
 .sev svg { width: 28px; height: 28px; }
 .metrics { display: grid; grid-template-columns: repeat(3, 1fr); padding-top: 14px; }
-.metrics > span { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 5px; padding: 0 18px; font: 600 26px/1.1 var(--font-num); letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+.metrics > span { display: flex; flex-wrap: wrap; align-items: baseline; align-content: flex-end; gap: 0 5px; padding: 0 18px; font: 600 26px/1.1 var(--font-num); letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
 .metrics > span:first-child { padding-left: 0; }
 .metrics > span + span { box-shadow: inset .5px 0 0 var(--win-line); }
 .metrics small { flex-basis: 100%; margin-bottom: 6px; color: var(--text-2); font: 600 13px/1.2 var(--font); font-variant-caps: all-small-caps; letter-spacing: .03em; }
@@ -250,7 +250,7 @@ main > section { padding-block: clamp(72px, 10vw, 136px); }
   .sev { width: 40px; height: 40px; border-radius: 10px; }
   .sev svg { width: 22px; height: 22px; }
   .metrics > span { padding: 0 10px; font-size: 20px; }
-  .metrics small { font-size: 12px; }
+  .metrics small { font-size: 11px; }
   .row { grid-template-columns: 28px minmax(0, 1fr) auto; gap: 10px; padding-inline: 12px; }
   .row > i { display: none; }
 }
@@ -272,6 +272,7 @@ main > section { padding-block: clamp(72px, 10vw, 136px); }
 .claim { width: 86%; font-size: 14px; }
 .claim .f-bar b { font-size: 12px; color: var(--text-2); }
 .claim .f-row { height: 40px; }
+.finder .f-row:nth-child(n+4) > span, .claim .f-row:last-child > span { visibility: hidden; }   /* covered rows: no glyph slivers at the window's corner */
 .pair .finding { margin: -32px 0 0 10%; padding: 18px 20px 20px; border-radius: var(--r-m); box-shadow: var(--shadow); }
 .said { margin: 0 0 10px; color: var(--text-2); font-size: 13px; font-weight: 600; }
 .said .tag { margin-left: 6px; }
@@ -357,7 +358,7 @@ details p { margin: 0 0 20px; color: var(--text-2); }
   background: radial-gradient(34% 90px at 50% var(--horizon), var(--wp-glow), transparent), linear-gradient(color-mix(in srgb, var(--wp-4) 50%, var(--bg-alt)), var(--bg-alt) 72%);
   box-shadow: var(--z1); --horizon: 196px; }
 .finale .panel::before { content: ""; position: absolute; z-index: -1; inset: 0 0 auto; height: var(--horizon); background: var(--grain), var(--wallpaper); }
-.finale .panel::after { content: ""; position: absolute; z-index: -1; top: var(--horizon); left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgb(255 255 255 / .8), transparent); }
+.finale .panel::after { content: ""; position: absolute; z-index: -1; top: var(--horizon); left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent 20%, rgb(255 255 255 / .8) 50%, transparent 80%); }
 .finale .icon { display: block; width: 128px; height: 128px; margin: 0 auto 88px; -webkit-box-reflect: below 2px linear-gradient(transparent 62%, rgb(0 0 0 / .26)); }   /* VERIFY inside a 3D parent in Safari */
 .finale h2 { margin-bottom: 0; }
 .finale .actions { margin-top: 32px; }
@@ -391,6 +392,7 @@ details p { margin: 0 0 20px; color: var(--text-2); }
 .prose p, .prose li { line-height: 1.6; }
 .prose ul, .prose ol { padding-left: 1.3em; }
 .prose li + li { margin-top: .5em; }
+.prose .steps li + li { margin-top: 0; }
 .prose .lede { margin-bottom: 1.2em; }
 .prose > .official { margin: 8px 0 28px; }
 .summary { margin: 32px 0 8px; padding: 24px 28px; border-radius: var(--r-l); background: var(--card); box-shadow: inset 2px 0 0 var(--accent), var(--z2); }
@@ -446,6 +448,16 @@ tbody th { font-weight: 600; }
     .reveal { animation: rise linear both; animation-timeline: view(); animation-range: entry 0% entry 75%; }
     .steps li::before { animation: coin linear both; animation-timeline: --step; animation-range: entry 0% entry 35%; }
   }
+  /* A stuck card's own view() never moves, so each covered card dims on the timeline of the card sliding over it:
+     from that card's top at ~560px (the covered card's foot) to ~110px (where it sticks). */
+  @supports (timeline-scope: --a) { @media (min-width: 900px) {
+    .stack { timeline-scope: --f2, --f3; }
+    .feature:nth-child(2) { view-timeline: --f2; }
+    .feature:nth-child(3) { view-timeline: --f3; }
+    .feature:nth-child(-n+2) { animation: cover linear both; animation-range: cover calc(100vh - 560px) cover calc(100vh - 110px); }
+    .feature:nth-child(1) { animation-timeline: --f2; }
+    .feature:nth-child(2) { animation-timeline: --f3; }
+  } }
   .reveal-io .reveal:not(.in) { opacity: 0; }
   .reveal-io .reveal.in { animation: rise var(--t-slow) var(--ease-out) calc(var(--i, 0) * 90ms) backwards; }
   .reveal-io .steps li.in::before { animation: coin var(--t-slow) var(--ease-out) calc(var(--i, 0) * 90ms + .15s) backwards; }
@@ -459,6 +471,7 @@ tbody th { font-weight: 600; }
 @keyframes rise { from { opacity: 0; translate: 0 32px; rotate: x 10deg; } }
 @keyframes unfold { from { opacity: 0; translate: 0 -6px; rotate: x -12deg; } }
 @keyframes coin { from { opacity: 0; transform: perspective(400px) rotateY(-90deg); } }
+@keyframes cover { to { opacity: .6; } }
 /* Accessibility media (DESIGN.md §2.7). html[lang] (0,1,1) beats the token blocks (0,1,0) whatever the order. */
 @media (prefers-contrast: more) {
   html[lang] { --grain: none; --glare: transparent; }

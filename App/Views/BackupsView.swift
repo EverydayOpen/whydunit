@@ -22,9 +22,24 @@ struct BackupsView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background { Sky() }
         } else {
-            List(store.backups) { backup in
-                row(backup)
+            // One porcelain group like Summary's, on the Sky, instead of a bare system list.
+            ScrollView {
+                VStack(spacing: 0) {
+                    ForEach(Array(store.backups.enumerated()), id: \.element.id) { i, backup in
+                        row(backup)
+                            .padding(.horizontal, Space.m)
+                            .overlay(alignment: .top) {
+                                if i > 0 { Divider().padding(.leading, 60) }   // 16 + 32 icon + 12: under the date
+                            }
+                    }
+                }
+                .surface(16)
+                .frame(maxWidth: 760)
+                .padding(.horizontal, Space.xl)
+                .padding(.vertical, Space.l)
+                .frame(maxWidth: .infinity)
             }
+            .background { Sky() }
             .confirmationDialog("Move this backup to the Trash?",
                                 isPresented: Binding(get: { pendingTrash != nil }, set: { if !$0 { pendingTrash = nil } }),
                                 presenting: pendingTrash) { backup in

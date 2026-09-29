@@ -99,8 +99,7 @@ struct FindingDetailView: View {
         Table(rows, selection: $store.selection, sortOrder: $sortOrder) {
             TableColumn("Name", value: \.name) { row in
                 HStack(spacing: Space.xs) {
-                    // VERIFY: returns a generic icon (never materializes) for dataless items.
-                    Image(nsImage: NSWorkspace.shared.icon(forFile: row.item.path))
+                    Image(nsImage: typeIcon(path: row.item.path, item: row.item))
                         .resizable()
                         .frame(width: 16, height: 16)
                         .accessibilityHidden(true)

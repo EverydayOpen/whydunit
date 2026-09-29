@@ -102,18 +102,18 @@ import WhydunitMac
 
         switch screen {
         case .welcome, .summary: break
-        case .finding: store.route = .finding(.onlyOnThisMac)
         case .backups: store.route = .backups
         case .activity: store.route = .activity
-        case .backUpSheet:
+        case .finding, .backUpSheet:
             store.route = .finding(.onlyOnThisMac)
-            // Once the window is up, so the sheet has a window to attach to. After the finding page's own
-            // pre-selection too, so the subtitle and the table's rows agree with the sheet.
+            // The same four rows in both shots, not the page's full pre-selection (an accent slab over half the table).
+            // Once the window is up, so the sheet has a window to attach to, and after the page's own pre-selection,
+            // so the subtitle and the table's rows agree with the sheet.
             Task {
                 try? await Task.sleep(for: .seconds(1))
                 let picked = items[0..<4].map(\.path)
                 store.selection = Set(picked)
-                store.sheet = .backUp(paths: picked)
+                if screen == .backUpSheet { store.sheet = .backUp(paths: picked) }
             }
         }
     }

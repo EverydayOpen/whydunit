@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import UniformTypeIdentifiers
 import WhydunitCore
 
 /// Spacing in points (UI_SPEC §2.1). `l` is the window and sheet padding.
@@ -183,8 +184,9 @@ extension Tag {
     init(_ text: String, tint: Color = .secondary) { self.init(text: text, tint: tint) }
 }
 
-/// Daylight on the top of a stage screen: the accent at 9% (16% in dark) fading out over 320pt, and a sun at the top
-/// centre (DESIGN.md §5.1). Static, never animated, never keyed to a verdict. Increase Contrast gets the plain window.
+/// Daylight on the top of a stage screen: the accent at 14% (22% in dark) fading out over 400pt, and a sun at the top
+/// centre (DESIGN.md §5.1, amended: at 9% over 320pt the light wash was white by 100pt). Static, never animated, never
+/// keyed to a verdict. Increase Contrast gets the plain window.
 struct Sky: View {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.colorSchemeContrast) private var contrast
@@ -193,9 +195,10 @@ struct Sky: View {
         ZStack(alignment: .top) {
             Color(nsColor: .windowBackgroundColor)
             if contrast != .increased {
-                LinearGradient(colors: [Color.accentColor.opacity(scheme == .dark ? 0.16 : 0.09), .clear], startPoint: .top, endPoint: .bottom)
-                    .frame(height: 320)
-                RadialGradient(colors: [.white.opacity(scheme == .dark ? 0.06 : 0.6), .clear], center: .top, startRadius: 0, endRadius: 420)
+                LinearGradient(colors: [Color.accentColor.opacity(scheme == .dark ? 0.22 : 0.14), .clear], startPoint: .top, endPoint: .bottom)
+                    .frame(height: 400)
+                // Weaker in light, so the sun doesn't bleach the tint at the top centre.
+                RadialGradient(colors: [.white.opacity(scheme == .dark ? 0.06 : 0.45), .clear], center: .top, startRadius: 0, endRadius: 420)
             }
         }
         .ignoresSafeArea()
@@ -204,10 +207,20 @@ struct Sky: View {
     }
 }
 
+extension View {
+    /// The Sky behind a screen shown while the sidebar may be collapsed (Welcome, first scan, empty and error states).
+    /// A view background alone came out blank with the split view at .detailOnly, so it is painted at window level
+    /// too. VERIFY on a Mac: the collapsed detail column is transparent over the window background.
+    func skyBackdrop() -> some View {
+        background { Sky() }
+            .containerBackground(for: .window) { Sky() }   // .window is macOS 15
+    }
+}
+
 // MARK: - Surfaces and objects (DESIGN.md §3.1; the same in Tirekick apart from Brand.ink)
 
 extension View {
-    /// Porcelain surface: white (a 5.5% white lift in dark), a hairline rim, a tight contact shadow plus a wide soft
+    /// Porcelain surface: white (a 5.5% white lift in dark), a rim lit from the top, a tight contact shadow plus a wide soft
     /// one tinted with the brand's ink. Concentric: pass the outer radius; content inside pads by radius - inner.
     /// Replaces grey grouped Form cells and `.quaternary` slabs. Never glass, never on a single row.
     func surface(_ radius: CGFloat = 16) -> some View { modifier(Surface(radius: radius)) }
@@ -221,10 +234,14 @@ private struct Surface: ViewModifier {
     func body(content: Content) -> some View {
         let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
         let dark = scheme == .dark, strong = contrast == .increased
+        // Brightest at the top edge (DESIGN §1.1 rule 3, §2.4); a 1pt rim in dark.
+        let rim = LinearGradient(colors: dark ? [Color.white.opacity(0.18), Color.white.opacity(0.06)]
+                                              : [Color.primary.opacity(0.05), Color.primary.opacity(0.10)],
+                                 startPoint: .top, endPoint: .bottom)
         content
             // White, not `.background`: on macOS that style is the window's own grey. VERIFY by eye in both schemes.
             .background(dark ? Color.white.opacity(0.055) : Color.white, in: shape)
-            .overlay { shape.strokeBorder(strong ? Color.primary.opacity(0.5) : Color.primary.opacity(dark ? 0.10 : 0.07), lineWidth: strong ? 1 : 0.5) }
+            .overlay { shape.strokeBorder(strong ? AnyShapeStyle(Color.primary.opacity(0.5)) : AnyShapeStyle(rim), lineWidth: strong || dark ? 1 : 0.5) }
             .compositingGroup()   // glyphs inside don't cast their own shadows (MOTION §1.4)
             .shadow(color: .black.opacity(dark ? 0.35 : 0.05), radius: 1, y: 1)
             .shadow(color: Brand.ink.opacity(dark ? 0.5 : 0.10), radius: 16, y: 8)
@@ -294,9 +311,12 @@ struct Metric: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(label).font(.caption.weight(.semibold).smallCaps()).foregroundStyle(.secondary)   // VERIFY small caps with SF
-            HStack(alignment: .firstTextBaseline, spacing: 4) {
+            // The dot on the label line, as in Tag: next to the number it read as a decimal point.
+            HStack(spacing: 5) {
                 if let dot { Circle().fill(dot).frame(width: 6, height: 6).accessibilityHidden(true) }
+                Text(label).font(.caption.weight(.semibold).smallCaps()).foregroundStyle(.secondary)   // VERIFY small caps with SF
+            }
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text(value).font(.system(size: 26, weight: .semibold, design: design)).monospacedDigit()
                 if let unit { Text(unit).font(.callout.weight(.medium)).foregroundStyle(.secondary) }
             }
@@ -391,6 +411,13 @@ extension FixAction {
         case .copyCommand: "Copy Command"
         }
     }
+}
+
+/// The type's icon, from the name alone: never reads the item (BUILD_PLAN §3). The finding's table and the sheets.
+@MainActor func typeIcon(path: String, item: ItemRecord?) -> NSImage {
+    let type = item?.isDirectory == true && item?.isPackage != true
+        ? UTType.folder : UTType(filenameExtension: (path as NSString).pathExtension) ?? .data
+    return NSWorkspace.shared.icon(for: type)
 }
 
 /// "1 item", "4,213 items".

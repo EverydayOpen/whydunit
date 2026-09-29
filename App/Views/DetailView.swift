@@ -6,12 +6,12 @@ struct DetailView: View {
     @Environment(AppStore.self) private var store
 
     var body: some View {
-        // The stage screens let their Sky run up under the toolbar, as in Music and Photos (DESIGN.md §5.1). Backups and
-        // Activity are plain lists that scroll under it, so they keep the system's toolbar background.
+        // The stage screens let their Sky run up under the toolbar, as in Music and Photos (DESIGN.md §5.1). Activity is
+        // a plain list that scrolls under it, so it keeps the system's toolbar background.
         switch store.route ?? .summary {
-        case .summary: summary.navigationTitle("Summary").toolbarBackground(.hidden, for: .windowToolbar)
+        case .summary: summary.navigationTitle(store.diagnosis == nil ? "Whydunit" : "Summary").toolbarBackground(.hidden, for: .windowToolbar)
         case .finding(let rule): FindingDetailView(rule: rule).navigationTitle(rule.shortName).toolbarBackground(.hidden, for: .windowToolbar)
-        case .backups: BackupsView().navigationTitle("Backups")
+        case .backups: BackupsView().navigationTitle("Backups").toolbarBackground(.hidden, for: .windowToolbar)
         case .activity: ActivityView().navigationTitle("Activity")
         }
     }
@@ -106,7 +106,7 @@ private extension View {
         buttonStyle(.bordered)   // the prominent action sets its own style
             .buttonBorderShape(.capsule)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background { Sky() }
+            .skyBackdrop()
     }
 }
 

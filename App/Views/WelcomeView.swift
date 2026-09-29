@@ -54,7 +54,7 @@ struct WelcomeView: View {
         // Centred a little above the middle (~45% of the default window's height), where the eye lands.
         .padding(.bottom, 72)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background { Sky() }
+        .skyBackdrop()
         .onAppear { withAnimation(reduceMotion ? Motion.standard(true) : Motion.hero) { shown = true } }
     }
 

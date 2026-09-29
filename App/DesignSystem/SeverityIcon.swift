@@ -1,6 +1,5 @@
 import AppKit
 import SwiftUI
-import UniformTypeIdentifiers
 import WhydunitCore
 
 /// The only view that draws a severity. VoiceOver always hears the word; with Differentiate Without Color
@@ -47,7 +46,7 @@ struct ItemList<Trailing: View>: View {
     var body: some View {
         List(paths, id: \.self) { path in
             HStack(spacing: Space.xs) {
-                Image(nsImage: icon(path)).resizable().frame(width: 20, height: 20).accessibilityHidden(true)
+                Image(nsImage: typeIcon(path: path, item: store.itemsByPath[path])).resizable().frame(width: 20, height: 20).accessibilityHidden(true)
                 // The folder too, so two items with the same name can be told apart.
                 VStack(alignment: .leading, spacing: 2) {
                     Text((path as NSString).lastPathComponent)
@@ -71,14 +70,6 @@ struct ItemList<Trailing: View>: View {
         .scrollContentBackground(.hidden)
         .frame(height: CGFloat(min(paths.count, 4)) * 40 + 2)   // VERIFY the 40pt row height of a plain list on a Mac
         .background { Color.clear.surface(12) }   // behind the table, so no compositing group wraps AppKit's view
-    }
-
-    /// The type's icon, from the name alone: never reads the item (BUILD_PLAN §3).
-    private func icon(_ path: String) -> NSImage {
-        let item = store.itemsByPath[path]
-        let type = item?.isDirectory == true && item?.isPackage != true
-            ? UTType.folder : UTType(filenameExtension: (path as NSString).pathExtension) ?? .data
-        return NSWorkspace.shared.icon(for: type)
     }
 }
 
