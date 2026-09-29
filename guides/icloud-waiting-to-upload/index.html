@@ -2,13 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>iCloud Drive stuck on “Waiting to Upload” on Mac: what it means and how to fix it safely</title>
 <meta name="description" content="What each iCloud status in Finder means, why files get stuck on Waiting to Upload, safe fixes in the right order, and the popular “fixes” that can lose your files.">
 <link rel="canonical" href="https://everydayopen.github.io/whydunit/guides/icloud-waiting-to-upload/">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f4f6f9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b0d12" media="(prefers-color-scheme: dark)">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Whydunit">
 <meta property="og:title" content="iCloud Drive stuck on “Waiting to Upload” on Mac: what it means and how to fix it safely">
@@ -23,140 +25,169 @@
 <link rel="apple-touch-icon" href="/whydunit/apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="Whydunit changelog" href="/whydunit/feed.xml">
 <link rel="stylesheet" href="/whydunit/styles.css">
+<script src="/whydunit/motion.js" defer></script>
 
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
+<svg class="sprite" aria-hidden="true">
+<symbol id="i-cloud" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" d="M7.2 18.5h10.3a4 4 0 0 0 .5-8A6 6 0 0 0 6.5 9.3a4.6 4.6 0 0 0 .7 9.2z"/></symbol>
+<symbol id="i-cloud-fill" viewBox="0 0 24 24"><path fill="currentColor" d="M7.2 18.5h10.3a4 4 0 0 0 .5-8A6 6 0 0 0 6.5 9.3a4.6 4.6 0 0 0 .7 9.2z"/></symbol>
+<symbol id="i-cloud-bang" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" d="M7.2 18.5h10.3a4 4 0 0 0 .5-8A6 6 0 0 0 6.5 9.3a4.6 4.6 0 0 0 .7 9.2zM12 10.5v3.2M12 16.2v.1"/></symbol>
+<symbol id="i-upload" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" d="M7.2 18.5h10.3a4 4 0 0 0 .5-8A6 6 0 0 0 6.5 9.3a4.6 4.6 0 0 0 .7 9.2zM12 16.5v-5m-2.2 2.2L12 11.5l2.2 2.2"/></symbol>
+<symbol id="i-tri" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M10.3 3.4a2 2 0 0 1 3.4 0l8.6 15a2 2 0 0 1-1.7 3H3.4a2 2 0 0 1-1.7-3zM11 8.5h2l-.3 6.5h-1.4zM12 16.3a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4z"/></symbol>
+<symbol id="i-laptop" viewBox="0 0 24 24"><g fill="none" stroke="currentColor"><rect x="4.5" y="5.5" width="15" height="10" rx="1.6"/><path d="M2.5 18.5h19"/></g></symbol>
+<symbol id="i-docs" viewBox="0 0 24 24"><g fill="none" stroke="currentColor"><path d="M9 6.5V4.5h6.5L19 8v9.5h-2"/><path d="M5 7.5h7.5L16 11v9.5H5z"/></g></symbol>
+<symbol id="i-folder-q" viewBox="0 0 24 24"><g fill="none" stroke="currentColor"><path d="M3.5 7.5V17a1.5 1.5 0 0 0 1.5 1.5h7M3.5 7.5V6A1.5 1.5 0 0 1 5 4.5h4l2 2h8A1.5 1.5 0 0 1 20.5 8v2.5M3.5 8.5h17"/><path d="M15.5 15a2 2 0 1 1 2.5 1.9v1M18 20.4v.1"/></g></symbol>
+<symbol id="i-minus" viewBox="0 0 24 24"><g fill="none" stroke="currentColor"><circle cx="12" cy="12" r="8.5"/><path d="M8 12h8"/></g></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor"><path d="M4.6 9A8 8 0 1 1 4 12"/><path d="M4 5v4h4M12 8v4l3 2"/></g></symbol>
+<symbol id="i-list" viewBox="0 0 24 24"><g fill="none" stroke="currentColor"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M8 9.5h8M8 12.5h8M8 15.5h5"/></g></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+<symbol id="i-seal" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M12 2.2l2.3 1.7 2.8-.2.9 2.7 2.4 1.5-.6 2.8 1.2 2.6-2.1 1.9-.3 2.8-2.8.5-1.7 2.3-2.7-.8-2.6 1.1-1.9-2.1-2.8-.4-.4-2.8-2.2-1.8 1-2.7-.5-2.8 2.4-1.4 1-2.6 2.8.2zM7.8 12.3l1.4-1.4 1.9 1.9 4.6-4.6 1.4 1.4-6 6z"/></symbol>
+<symbol id="i-down" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M4.5 19.5h15"/></symbol>
+<symbol id="i-doc" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" d="M6.5 3.5h7L18 8v12.5H6.5zM13.5 3.5V8H18"/></symbol>
+<symbol id="i-drive" viewBox="0 0 24 24"><g fill="none" stroke="currentColor"><rect x="3.5" y="13.5" width="17" height="6.5" rx="2"/><path d="M7 16.8h.01M8.5 7.5l2.5 2.5 4.8-5"/></g></symbol>
+<symbol id="i-restart" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3M19.5 4v4h-4"/></symbol>
+<symbol id="i-panel" viewBox="0 0 24 24"><g fill="none" stroke="currentColor"><rect x="3.5" y="5" width="17" height="14" rx="2.5"/><path d="M14.5 5v14"/></g></symbol>
+<symbol id="i-back" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" d="M14.5 6l-6 6 6 6"/></symbol>
+<symbol id="i-git" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2.5a9.5 9.5 0 0 0-3 18.5c.5.1.6-.2.6-.5v-1.8c-2.6.6-3.2-1.1-3.2-1.1-.4-1.1-1-1.4-1-1.4-.9-.6 0-.6 0-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1 2.8.8.1-.6.3-1 .6-1.3-2.1-.2-4.3-1-4.3-4.7 0-1 .4-1.9 1-2.6-.1-.2-.4-1.2.1-2.5 0 0 .8-.3 2.6 1a9 9 0 0 1 4.8 0c1.8-1.3 2.6-1 2.6-1 .5 1.3.2 2.3.1 2.5.6.7 1 1.6 1 2.6 0 3.7-2.2 4.5-4.3 4.7.3.3.6.9.6 1.8v2.7c0 .3.2.6.7.5A9.5 9.5 0 0 0 12 2.5z"/></symbol>
+</svg>
 <header class="site-header">
-  <nav class="wrap nav" aria-label="Main">
-    <a class="brand" href="/whydunit/"><img src="/whydunit/favicon.png" width="28" height="28" alt=""><span>Whydunit</span></a>
-    <ul class="nav-links">
-      <li><a href="/whydunit/#how">How it works</a></li>
-      <li><a href="/whydunit/#safety">Safety</a></li>
-      <li><a href="/whydunit/#faq">FAQ</a></li>
-      <li><a href="/whydunit/support/">Support</a></li>
-    </ul>
-    <a class="button small" href="/whydunit/download/">Download</a>
-  </nav>
+<nav class="nav" aria-label="Main">
+<a class="brand" href="/whydunit/"><img src="/whydunit/favicon.png" width="22" height="22" alt=""><span>Whydunit</span></a>
+<ul class="nav-links">
+<li><a href="/whydunit/#how">How it works</a></li>
+<li><a href="/whydunit/#safety">Safety</a></li>
+<li><a href="/whydunit/#faq">FAQ</a></li>
+</ul>
+<a rel="noopener noreferrer" class="button secondary small src" href="https://github.com/EverydayOpen/whydunit"><svg aria-hidden="true"><use href="#i-git"/></svg>Source</a>
+<a class="button small" href="/whydunit/download/">Download</a>
+</nav>
 </header>
 <main id="main" tabindex="-1">
-<article class="wrap narrow prose guide">
-  <p class="eyebrow">Guide · Updated September 2026 · macOS 15 to 27</p>
-  <h1>iCloud Drive stuck on “Waiting to Upload” on your Mac: what it means and how to fix it safely</h1>
+<article class="wrap read prose guide">
+<p class="eyebrow">Guide · Updated September 2026 · macOS 15 to 27</p>
+<h1>iCloud Drive stuck on “Waiting to Upload” on your Mac: what it means and how to fix it safely</h1>
 
-  <div class="summary">
-    <h2>The short answer</h2>
-    <p>“Waiting to Upload” means the file is on your Mac but not yet stored in iCloud. Until it uploads, <b>this Mac has the only copy</b>. Usually iCloud catches up on its own. If it hasn't after a few hours:</p>
-    <ol>
-      <li>Check your connection, <a href="https://www.apple.com/support/systemstatus/">Apple's System Status page</a> and your iCloud storage.</li>
-      <li>Copy the waiting files to a folder outside iCloud Drive.</li>
-      <li>Restart your Mac.</li>
-      <li>Restart iCloud's sync process with <code>killall bird</code> in Terminal (no <code>sudo</code>).</li>
-      <li>If a new small file does upload, move a stuck file out of iCloud Drive and back, one file at a time.</li>
-    </ol>
-    <p>Don't delete CloudDocs folders, don't sign out of iCloud or turn off iCloud Drive while files are waiting, and don't kill <code>nsurlsessiond</code>.</p>
-  </div>
+<div class="summary">
+<h2>The short answer</h2>
+<p>“Waiting to Upload” means the file is on your Mac but not yet stored in iCloud. Until it uploads, <b>this Mac has the only copy</b>. Usually iCloud catches up on its own. If it hasn't after a few hours:</p>
+<ol>
+<li>Check your connection, <a rel="noopener noreferrer" href="https://www.apple.com/support/systemstatus/">Apple's System Status page</a> and your iCloud storage.</li>
+<li>Copy the waiting files to a folder outside iCloud Drive.</li>
+<li>Restart your Mac.</li>
+<li>Restart iCloud's sync process with <code>killall bird</code> in Terminal (no <code>sudo</code>).</li>
+<li>If a new small file does upload, move a stuck file out of iCloud Drive and back, one file at a time.</li>
+</ol>
+<p>Don't delete CloudDocs folders, don't sign out of iCloud or turn off iCloud Drive while files are waiting, and don't kill <code>nsurlsessiond</code>.</p>
+</div>
 
-  <h2 id="statuses">What each iCloud status in Finder means</h2>
-  <p>Finder shows a small icon next to items in iCloud Drive. To see them as words, open iCloud Drive in List view (View › as List), then choose View › Show View Options and turn on iCloud Status. These are the statuses in <a href="https://support.apple.com/guide/mac-help/mchlc994344b/mac">Apple's Mac User Guide</a>:</p>
-  <div class="table-scroll" role="region" aria-label="iCloud statuses in Finder" tabindex="0">
-    <table>
-      <thead><tr><th scope="col">Status</th><th scope="col">What it means</th><th scope="col">Worry?</th></tr></thead>
-      <tbody>
-        <tr><th scope="row">In iCloud</th><td>Stored only in iCloud. You need the internet to open it.</td><td>No</td></tr>
-        <tr><th scope="row">Downloaded</th><td>Up to date on your Mac and in iCloud.</td><td>No</td></tr>
-        <tr><th scope="row">Keep Downloaded</th><td>Always kept on this Mac, even if you haven't used it for a while.</td><td>No</td></tr>
-        <tr><th scope="row">Pie chart</th><td>Uploading or downloading. It fills in as the transfer progresses.</td><td>Only if it never moves</td></tr>
-        <tr><th scope="row">Waiting to Upload</th><td>On your Mac, not yet stored in iCloud.</td><td>If it lasts for hours</td></tr>
-        <tr><th scope="row">Out of Space</th><td>Can't be stored because your iCloud storage is full. It stays on your Mac and uploads when space is available.</td><td>Yes: free up or add iCloud storage</td></tr>
-        <tr><th scope="row">Ineligible</th><td>Can't be stored in iCloud, usually because it is larger than 50&nbsp;GB.</td><td>Yes: keep it outside iCloud Drive</td></tr>
-      </tbody>
-    </table>
-  </div>
+<h2 id="statuses">What each iCloud status in Finder means</h2>
+<p>Finder shows a small icon next to items in iCloud Drive. To see them as words, open iCloud Drive in List view (View › as List), then choose View › Show View Options and turn on iCloud Status. These are the statuses in <a rel="noopener noreferrer" href="https://support.apple.com/guide/mac-help/mchlc994344b/mac">Apple's Mac User Guide</a>:</p>
+<div class="table-scroll" role="region" aria-label="iCloud statuses in Finder" tabindex="0">
+<table>
+<thead><tr><th scope="col">Status</th><th scope="col">What it means</th><th scope="col">Worry?</th></tr></thead>
+<tbody>
+<tr><th scope="row">In iCloud</th><td>Stored only in iCloud. You need the internet to open it.</td><td>No</td></tr>
+<tr><th scope="row">Downloaded</th><td>Up to date on your Mac and in iCloud.</td><td>No</td></tr>
+<tr><th scope="row">Keep Downloaded</th><td>Always kept on this Mac, even if you haven't used it for a while.</td><td>No</td></tr>
+<tr><th scope="row">Pie chart</th><td>Uploading or downloading. It fills in as the transfer progresses.</td><td>Only if it never moves</td></tr>
+<tr><th scope="row">Waiting to Upload</th><td>On your Mac, not yet stored in iCloud.</td><td>If it lasts for hours</td></tr>
+<tr><th scope="row">Out of Space</th><td>Can't be stored because your iCloud storage is full. It stays on your Mac and uploads when space is available.</td><td>Yes: free up or add iCloud storage</td></tr>
+<tr><th scope="row">Ineligible</th><td>Can't be stored in iCloud, usually because it is larger than 50&nbsp;GB.</td><td>Yes: keep it outside iCloud Drive</td></tr>
+</tbody>
+</table>
+</div>
 
-  <h2 id="causes">Why files get stuck</h2>
-  <ul>
-    <li><b>iCloud is just busy.</b> After you set up a Mac, turn on Desktop &amp; Documents or add a lot of files, uploading can take hours.</li>
-    <li><b>Your iCloud storage is full.</b> Finder says Out of Space, and nothing more can upload until you free up space or add storage.</li>
-    <li><b>No connection, or trouble on Apple's side.</b> Check your internet and Apple's System Status page.</li>
-    <li><b>A file iCloud won't take.</b> Items over 50&nbsp;GB are Ineligible. Names ending in <code>.nosync</code> or <code>.tmp</code> are never synced, by design, so they aren't stuck at all. And Eclectic Light found that files with certain lock flags <a href="https://eclecticlight.co/2026/06/02/bsd-flags-are-incompatible-with-icloud-drive/">fail to sync on macOS 26.5</a>.</li>
-    <li><b>Folders with huge numbers of changing files.</b> Developer folders such as <code>node_modules</code>, <code>.git</code> or build output can hold tens of thousands of small files that change constantly, and keep iCloud busy for good.</li>
-    <li><b>iCloud's sync process has stalled for the whole Mac.</b> The telltale sign: even a brand-new small file won't upload.</li>
-    <li><b>A macOS bug.</b> Two recent examples: macOS 26.2 stopped packages such as Pages documents and Xcode projects from syncing, <a href="https://developer.apple.com/forums/thread/810671">fixed in 26.3</a>, and on 26.4.1 developers <a href="https://developer.apple.com/forums/thread/822534">reported larger uploads hanging</a> (not confirmed by Apple).</li>
-  </ul>
+<h2 id="causes">Why files get stuck</h2>
+<ul>
+<li><b>iCloud is just busy.</b> After you set up a Mac, turn on Desktop &amp; Documents or add a lot of files, uploading can take hours.</li>
+<li><b>Your iCloud storage is full.</b> Finder says Out of Space, and nothing more can upload until you free up space or add storage.</li>
+<li><b>No connection, or trouble on Apple's side.</b> Check your internet and Apple's System Status page.</li>
+<li><b>A file iCloud won't take.</b> Items over 50&nbsp;GB are Ineligible. Names ending in <code>.nosync</code> or <code>.tmp</code> are never synced, by design, so they aren't stuck at all. And Eclectic Light found that files with certain lock flags <a rel="noopener noreferrer" href="https://eclecticlight.co/2026/06/02/bsd-flags-are-incompatible-with-icloud-drive/">fail to sync on macOS 26.5</a>.</li>
+<li><b>Folders with huge numbers of changing files.</b> Developer folders such as <code>node_modules</code>, <code>.git</code> or build output can hold tens of thousands of small files that change constantly, and keep iCloud busy for good.</li>
+<li><b>iCloud's sync process has stalled for the whole Mac.</b> The telltale sign: even a brand-new small file won't upload.</li>
+<li><b>A macOS bug.</b> Two recent examples: macOS 26.2 stopped packages such as Pages documents and Xcode projects from syncing, <a rel="noopener noreferrer" href="https://developer.apple.com/forums/thread/810671">fixed in 26.3</a>, and on 26.4.1 developers <a rel="noopener noreferrer" href="https://developer.apple.com/forums/thread/822534">reported larger uploads hanging</a> (not confirmed by Apple).</li>
+</ul>
 
-  <h2 id="fixes">Safe fixes, in order</h2>
-  <p>Start at the top and stop as soon as your files upload. Each step is safe on its own.</p>
-  <ol class="fix-steps">
-    <li><b>Check the basics.</b> Make sure you're online, check Apple's System Status page, and look at your iCloud storage in System Settings › your name › iCloud.</li>
-    <li><b>Find out whether it's some files or everything.</b> Save a small new file, such as a short text note, in iCloud Drive and watch it for a few minutes. If it uploads, iCloud works and only certain files are stuck. If it doesn't, sync is stalled for the whole Mac: don't move or rename individual files yet. Carry on with the steps below, but skip step 7.</li>
-    <li><b>Make a copy of everything that says Waiting to Upload</b>, in a folder outside iCloud Drive, such as an external drive or a new folder in your home folder. If Desktop &amp; Documents sync to iCloud, those two folders are in iCloud too, so don't use them.</li>
-    <li><b>Quit apps that have the files open</b>, and stop anything that keeps changing files, such as builds or development servers.</li>
-    <li><b>Restart your Mac.</b> A restart is gentler than switching iCloud settings off and on.</li>
-    <li><b>Restart iCloud's sync process.</b> Open Terminal and run <code>killall bird</code>, without <code>sudo</code>. <code>bird</code> is the background process that syncs iCloud Drive, and macOS starts it again by itself. Do this once, then give it a few minutes. Don't run it over and over.</li>
-    <li><b>Move a stuck file out and back.</b> If step 2 showed that iCloud works, move one stuck file from iCloud Drive to a folder outside it, such as the one you used in step 3, wait for everything else to finish uploading, then move it back. One file at a time. This is the method <a href="https://eclecticlight.co/2023/07/24/how-to-fix-problems-with-icloud-and-icloud-drive/">Howard Oakley recommends</a>. Keep your copy from step 3 until the file shows as uploaded.</li>
-    <li><b>Remove the cause.</b> Free up or add iCloud storage, keep items over 50&nbsp;GB outside iCloud Drive, and move developer folders out of it.</li>
-    <li><b>Still stuck after a day?</b> Contact Apple Support (see below).</li>
-  </ol>
+<h2 id="fixes">Safe fixes, in order</h2>
+<p>Start at the top and stop as soon as your files upload. Each step is safe on its own.</p>
+<ol class="fix-steps">
+<li><b>Check the basics.</b> Make sure you're online, check Apple's System Status page, and look at your iCloud storage in System Settings › your name › iCloud.</li>
+<li><b>Find out whether it's some files or everything.</b> Save a small new file, such as a short text note, in iCloud Drive and watch it for a few minutes. If it uploads, iCloud works and only certain files are stuck. If it doesn't, sync is stalled for the whole Mac: don't move or rename individual files yet. Carry on with the steps below, but skip step 7.</li>
+<li><b>Make a copy of everything that says Waiting to Upload</b>, in a folder outside iCloud Drive, such as an external drive or a new folder in your home folder. If Desktop &amp; Documents sync to iCloud, those two folders are in iCloud too, so don't use them.</li>
+<li><b>Quit apps that have the files open</b>, and stop anything that keeps changing files, such as builds or development servers.</li>
+<li><b>Restart your Mac.</b> A restart is gentler than switching iCloud settings off and on.</li>
+<li><b>Restart iCloud's sync process.</b> Open Terminal and run <code>killall bird</code>, without <code>sudo</code>. <code>bird</code> is the background process that syncs iCloud Drive, and macOS starts it again by itself. Do this once, then give it a few minutes. Don't run it over and over.</li>
+<li><b>Move a stuck file out and back.</b> If step 2 showed that iCloud works, move one stuck file from iCloud Drive to a folder outside it, such as the one you used in step 3, wait for everything else to finish uploading, then move it back. One file at a time. This is the method <a rel="noopener noreferrer" href="https://eclecticlight.co/2023/07/24/how-to-fix-problems-with-icloud-and-icloud-drive/">Howard Oakley recommends</a>. Keep your copy from step 3 until the file shows as uploaded.</li>
+<li><b>Remove the cause.</b> Free up or add iCloud storage, keep items over 50&nbsp;GB outside iCloud Drive, and move developer folders out of it.</li>
+<li><b>Still stuck after a day?</b> Contact Apple Support (see below).</li>
+</ol>
 
-  <h2 id="dont">Don't do this</h2>
-  <ul class="donts">
-    <li><b>Don't delete the CloudDocs folders.</b> Some guides tell you to delete <code>~/Library/Application Support/CloudDocs</code> or iCloud's CloudKit caches. Those folders are iCloud's own record of what has synced; deleting them forces a full resync at best. And <code>~/Library/Mobile Documents/com~apple~CloudDocs</code>, with a similar name, isn't a cache at all: it <em>is</em> your iCloud Drive. Mixing the two up is how people lose files.</li>
-    <li><b>Don't sign out of iCloud or turn off iCloud Drive while files are waiting to upload.</b> Files that exist only on your Mac are exactly the ones at risk: <a href="https://tidbits.com/2023/10/12/cloudy-with-a-chance-of-insanity-unsticking-icloud-drive/">TidBITS reported</a> files coming back empty (0&nbsp;KB) after turning iCloud Drive off. First make sure they have uploaded, or that you have your own copy.</li>
-    <li><b>Don't kill <code>nsurlsessiond</code>.</b> Commands like <code>killall nsurlsessiond</code>, especially with <code>sudo</code>, stop the system's own background transfer service along with yours. Developers on Apple's forums warn against it.</li>
-    <li><b>Don't turn off Optimize Mac Storage unless your Mac has room for everything.</b> Turning it off makes macOS download every file stored only in iCloud. If those files add up to more than your free space, <a href="https://eclecticlight.co/2024/03/11/icloud-drive-in-sonoma-optimise-mac-storage-or-not/">you can't turn it off safely</a>.</li>
-    <li><b>Don't run permission-repair tools on your Library folder.</b> One user reported a Mac that could no longer start up after a permissions tool was applied to everything in <code>~/Library</code>.</li>
-    <li><b>Don't use <code>sudo</code> for any of this.</b> Nothing in this guide needs administrator rights.</li>
-  </ul>
+<h2 id="dont">Don't do this</h2>
+<ul class="donts">
+<li><b>Don't delete the CloudDocs folders.</b> Some guides tell you to delete <code>~/Library/Application Support/CloudDocs</code> or iCloud's CloudKit caches. Those folders are iCloud's own record of what has synced; deleting them forces a full resync at best. And <code>~/Library/Mobile Documents/com~apple~CloudDocs</code>, with a similar name, isn't a cache at all: it <em>is</em> your iCloud Drive. Mixing the two up is how people lose files.</li>
+<li><b>Don't sign out of iCloud or turn off iCloud Drive while files are waiting to upload.</b> Files that exist only on your Mac are exactly the ones at risk: <a rel="noopener noreferrer" href="https://tidbits.com/2023/10/12/cloudy-with-a-chance-of-insanity-unsticking-icloud-drive/">TidBITS reported</a> files coming back empty (0&nbsp;KB) after turning iCloud Drive off. First make sure they have uploaded, or that you have your own copy.</li>
+<li><b>Don't kill <code>nsurlsessiond</code>.</b> Commands like <code>killall nsurlsessiond</code>, especially with <code>sudo</code>, stop the system's own background transfer service along with yours. Developers on Apple's forums warn against it.</li>
+<li><b>Don't turn off Optimize Mac Storage unless your Mac has room for everything.</b> Turning it off makes macOS download every file stored only in iCloud. If those files add up to more than your free space, <a rel="noopener noreferrer" href="https://eclecticlight.co/2024/03/11/icloud-drive-in-sonoma-optimise-mac-storage-or-not/">you can't turn it off safely</a>.</li>
+<li><b>Don't run permission-repair tools on your Library folder.</b> One user reported a Mac that could no longer start up after a permissions tool was applied to everything in <code>~/Library</code>.</li>
+<li><b>Don't use <code>sudo</code> for any of this.</b> Nothing in this guide needs administrator rights.</li>
+</ul>
 
-  <h2 id="apple">When it's Apple's side</h2>
-  <p>Some problems can't be fixed from your Mac. It's likely on Apple's side when System Status shows an iCloud Drive problem, when new files won't upload from your other devices either, or when nothing changes after a restart and restarting <code>bird</code>. Problems with your Apple Account also need Apple.</p>
-  <p>Contact Apple Support and tell them which files are stuck, since when, your macOS version and what you've already tried. Don't sign out or reset anything until the files that exist only on your Mac are copied somewhere safe. Deleted files can often be restored from Recently Deleted in iCloud Drive on iCloud.com, where Apple <a href="https://support.apple.com/guide/icloud/recover-deleted-files-mmae56ea1ca5/icloud">keeps them for 30 days</a>.</p>
+<h2 id="apple">When it's Apple's side</h2>
+<p>Some problems can't be fixed from your Mac. It's likely on Apple's side when System Status shows an iCloud Drive problem, when new files won't upload from your other devices either, or when nothing changes after a restart and restarting <code>bird</code>. Problems with your Apple Account also need Apple.</p>
+<p>Contact Apple Support and tell them which files are stuck, since when, your macOS version and what you've already tried. Don't sign out or reset anything until the files that exist only on your Mac are copied somewhere safe. Deleted files can often be restored from Recently Deleted in iCloud Drive on iCloud.com, where Apple <a rel="noopener noreferrer" href="https://support.apple.com/guide/icloud/recover-deleted-files-mmae56ea1ca5/icloud">keeps them for 30 days</a>.</p>
 
-  <h2 id="whydunit">Doing this with Whydunit</h2>
-  <p>We make Whydunit, a Mac app that runs these checks for you. It lists the files in iCloud Drive that haven't uploaded and why, tells you which exist only on your Mac, tests sync with a small upload, and makes checksum-verified backups before it moves stuck files out and back, one at a time. It's free. <a href="/whydunit/">Learn more</a>.</p>
+<h2 id="whydunit">Doing this with Whydunit</h2>
+<p>We make Whydunit, a Mac app that runs these checks for you. It lists the files in iCloud Drive that haven't uploaded and why, tells you which exist only on your Mac, tests sync with a small upload, and makes checksum-verified backups before it moves stuck files out and back, one at a time. It's free. <a href="/whydunit/">Learn more</a>.</p>
 
-  <h2 id="sources">Sources</h2>
-  <ul class="sources">
-    <li>Apple: <a href="https://support.apple.com/guide/mac-help/mchlc994344b/mac">Check your iCloud Drive file and folder status on Mac</a></li>
-    <li>Apple: <a href="https://www.apple.com/support/systemstatus/">System Status</a></li>
-    <li>Apple: <a href="https://support.apple.com/guide/icloud/recover-deleted-files-mmae56ea1ca5/icloud">Recover deleted files on iCloud.com</a></li>
-    <li>The Eclectic Light Company: <a href="https://eclecticlight.co/2023/07/24/how-to-fix-problems-with-icloud-and-icloud-drive/">How to fix problems with iCloud and iCloud Drive</a>, <a href="https://eclecticlight.co/2026/06/02/bsd-flags-are-incompatible-with-icloud-drive/">BSD flags are incompatible with iCloud Drive</a>, <a href="https://eclecticlight.co/2024/03/11/icloud-drive-in-sonoma-optimise-mac-storage-or-not/">Optimise Mac Storage or not?</a></li>
-    <li>Apple Developer Forums: <a href="https://developer.apple.com/forums/thread/810671">packages not syncing on macOS 26.2</a>, <a href="https://developer.apple.com/forums/thread/822534">uploads hanging on 26.4.1</a></li>
-    <li>TidBITS: <a href="https://tidbits.com/2023/10/12/cloudy-with-a-chance-of-insanity-unsticking-icloud-drive/">Cloudy with a chance of insanity: unsticking iCloud Drive</a></li>
-  </ul>
+<h2 id="sources">Sources</h2>
+<ul class="sources">
+<li>Apple: <a rel="noopener noreferrer" href="https://support.apple.com/guide/mac-help/mchlc994344b/mac">Check your iCloud Drive file and folder status on Mac</a></li>
+<li>Apple: <a rel="noopener noreferrer" href="https://www.apple.com/support/systemstatus/">System Status</a></li>
+<li>Apple: <a rel="noopener noreferrer" href="https://support.apple.com/guide/icloud/recover-deleted-files-mmae56ea1ca5/icloud">Recover deleted files on iCloud.com</a></li>
+<li>The Eclectic Light Company: <a rel="noopener noreferrer" href="https://eclecticlight.co/2023/07/24/how-to-fix-problems-with-icloud-and-icloud-drive/">How to fix problems with iCloud and iCloud Drive</a>, <a rel="noopener noreferrer" href="https://eclecticlight.co/2026/06/02/bsd-flags-are-incompatible-with-icloud-drive/">BSD flags are incompatible with iCloud Drive</a>, <a rel="noopener noreferrer" href="https://eclecticlight.co/2024/03/11/icloud-drive-in-sonoma-optimise-mac-storage-or-not/">Optimise Mac Storage or not?</a></li>
+<li>Apple Developer Forums: <a rel="noopener noreferrer" href="https://developer.apple.com/forums/thread/810671">packages not syncing on macOS 26.2</a>, <a rel="noopener noreferrer" href="https://developer.apple.com/forums/thread/822534">uploads hanging on 26.4.1</a></li>
+<li>TidBITS: <a rel="noopener noreferrer" href="https://tidbits.com/2023/10/12/cloudy-with-a-chance-of-insanity-unsticking-icloud-drive/">Cloudy with a chance of insanity: unsticking iCloud Drive</a></li>
+</ul>
 </article>
 
 </main>
 <footer class="site-footer">
-  <div class="wrap">
-    <div class="footer-cols">
-      <div>
-        <h2>Product</h2>
-        <ul>
-          <li><a href="/whydunit/download/">Download</a></li>
-          <li><a href="/whydunit/changelog/">Changelog</a></li>
-          <li><a href="/whydunit/guides/icloud-waiting-to-upload/">Guide: Waiting to Upload</a></li>
-        </ul>
-      </div>
-      <div>
-        <h2>Help</h2>
-        <ul>
-          <li><a href="/whydunit/support/">Support</a></li>
-          <li><a href="https://github.com/EverydayOpen/whydunit/issues">Report a problem</a></li>
-        </ul>
-      </div>
-      <div>
-        <h2>Legal</h2>
-        <ul>
-          <li><a href="/whydunit/privacy/">Privacy</a></li>
-          <li><a href="/whydunit/terms/">Terms</a></li>
-        </ul>
-      </div>
-    </div>
-    <p class="fine">© 2026 Whydunit. Free, with no account and no tracking.</p>
-    <p class="fine">Mac, macOS and iCloud are trademarks of Apple Inc., registered in the U.S. and other countries and regions. Whydunit is not affiliated with or endorsed by Apple Inc.</p>
-  </div>
+<div class="wrap">
+<div class="footer-cols">
+<div class="footer-brand">
+<a class="brand" href="/whydunit/"><img src="/whydunit/favicon.png" width="22" height="22" alt=""><span>Whydunit</span></a>
+<p>Finds out why iCloud Drive files won't upload, and fixes them safely.</p>
+</div>
+<div>
+<h2>Product</h2>
+<ul>
+<li><a href="/whydunit/download/">Download</a></li>
+<li><a href="/whydunit/changelog/">Changelog</a></li>
+<li><a href="/whydunit/guides/icloud-waiting-to-upload/">Guide: Waiting to Upload</a></li>
+</ul>
+</div>
+<div>
+<h2>Help</h2>
+<ul>
+<li><a href="/whydunit/support/">Support</a></li>
+<li><a rel="noopener noreferrer" href="https://github.com/EverydayOpen/whydunit/issues">Report a problem</a></li>
+<li><a rel="noopener noreferrer" href="https://github.com/EverydayOpen/whydunit">Source code</a></li>
+</ul>
+</div>
+<div>
+<h2>Legal</h2>
+<ul>
+<li><a href="/whydunit/privacy/">Privacy</a></li>
+<li><a href="/whydunit/terms/">Terms</a></li>
+</ul>
+</div>
+</div>
+<p class="official"><svg aria-hidden="true"><use href="#i-check"/></svg><span>The only official site is https://everydayopen.github.io/whydunit. Downloads come only from github.com/EverydayOpen/whydunit/releases.</span></p>
+<p class="fine"><span>© 2026 Whydunit. Free, with no account and no tracking.</span> <code>beta</code></p>
+<p class="fine">Mac, macOS and iCloud are trademarks of Apple Inc., registered in the U.S. and other countries and regions. Whydunit is not affiliated with or endorsed by Apple Inc.</p>
+</div>
 </footer>
 </body>
 </html>

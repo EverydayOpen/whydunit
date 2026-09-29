@@ -2,13 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Download Whydunit</title>
 <meta name="description" content="Download Whydunit for Mac, free. Finds and safely fixes stuck iCloud Drive files. Requires macOS 15 or later.">
 <link rel="canonical" href="https://everydayopen.github.io/whydunit/download/">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f4f6f9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b0d12" media="(prefers-color-scheme: dark)">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Whydunit">
 <meta property="og:title" content="Download Whydunit">
@@ -23,55 +25,97 @@
 <link rel="apple-touch-icon" href="/whydunit/apple-touch-icon.png">
 <link rel="alternate" type="application/rss+xml" title="Whydunit changelog" href="/whydunit/feed.xml">
 <link rel="stylesheet" href="/whydunit/styles.css">
+<script src="/whydunit/motion.js" defer></script>
 <meta name="robots" content="noindex">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
+<svg class="sprite" aria-hidden="true">
+<symbol id="i-cloud" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" d="M7.2 18.5h10.3a4 4 0 0 0 .5-8A6 6 0 0 0 6.5 9.3a4.6 4.6 0 0 0 .7 9.2z"/></symbol>
+<symbol id="i-cloud-fill" viewBox="0 0 24 24"><path fill="currentColor" d="M7.2 18.5h10.3a4 4 0 0 0 .5-8A6 6 0 0 0 6.5 9.3a4.6 4.6 0 0 0 .7 9.2z"/></symbol>
+<symbol id="i-cloud-bang" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" d="M7.2 18.5h10.3a4 4 0 0 0 .5-8A6 6 0 0 0 6.5 9.3a4.6 4.6 0 0 0 .7 9.2zM12 10.5v3.2M12 16.2v.1"/></symbol>
+<symbol id="i-upload" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" d="M7.2 18.5h10.3a4 4 0 0 0 .5-8A6 6 0 0 0 6.5 9.3a4.6 4.6 0 0 0 .7 9.2zM12 16.5v-5m-2.2 2.2L12 11.5l2.2 2.2"/></symbol>
+<symbol id="i-tri" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M10.3 3.4a2 2 0 0 1 3.4 0l8.6 15a2 2 0 0 1-1.7 3H3.4a2 2 0 0 1-1.7-3zM11 8.5h2l-.3 6.5h-1.4zM12 16.3a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4z"/></symbol>
+<symbol id="i-laptop" viewBox="0 0 24 24"><g fill="none" stroke="currentColor"><rect x="4.5" y="5.5" width="15" height="10" rx="1.6"/><path d="M2.5 18.5h19"/></g></symbol>
+<symbol id="i-docs" viewBox="0 0 24 24"><g fill="none" stroke="currentColor"><path d="M9 6.5V4.5h6.5L19 8v9.5h-2"/><path d="M5 7.5h7.5L16 11v9.5H5z"/></g></symbol>
+<symbol id="i-folder-q" viewBox="0 0 24 24"><g fill="none" stroke="currentColor"><path d="M3.5 7.5V17a1.5 1.5 0 0 0 1.5 1.5h7M3.5 7.5V6A1.5 1.5 0 0 1 5 4.5h4l2 2h8A1.5 1.5 0 0 1 20.5 8v2.5M3.5 8.5h17"/><path d="M15.5 15a2 2 0 1 1 2.5 1.9v1M18 20.4v.1"/></g></symbol>
+<symbol id="i-minus" viewBox="0 0 24 24"><g fill="none" stroke="currentColor"><circle cx="12" cy="12" r="8.5"/><path d="M8 12h8"/></g></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor"><path d="M4.6 9A8 8 0 1 1 4 12"/><path d="M4 5v4h4M12 8v4l3 2"/></g></symbol>
+<symbol id="i-list" viewBox="0 0 24 24"><g fill="none" stroke="currentColor"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M8 9.5h8M8 12.5h8M8 15.5h5"/></g></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+<symbol id="i-seal" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" d="M12 2.2l2.3 1.7 2.8-.2.9 2.7 2.4 1.5-.6 2.8 1.2 2.6-2.1 1.9-.3 2.8-2.8.5-1.7 2.3-2.7-.8-2.6 1.1-1.9-2.1-2.8-.4-.4-2.8-2.2-1.8 1-2.7-.5-2.8 2.4-1.4 1-2.6 2.8.2zM7.8 12.3l1.4-1.4 1.9 1.9 4.6-4.6 1.4 1.4-6 6z"/></symbol>
+<symbol id="i-down" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M4.5 19.5h15"/></symbol>
+<symbol id="i-doc" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" d="M6.5 3.5h7L18 8v12.5H6.5zM13.5 3.5V8H18"/></symbol>
+<symbol id="i-drive" viewBox="0 0 24 24"><g fill="none" stroke="currentColor"><rect x="3.5" y="13.5" width="17" height="6.5" rx="2"/><path d="M7 16.8h.01M8.5 7.5l2.5 2.5 4.8-5"/></g></symbol>
+<symbol id="i-restart" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3M19.5 4v4h-4"/></symbol>
+<symbol id="i-panel" viewBox="0 0 24 24"><g fill="none" stroke="currentColor"><rect x="3.5" y="5" width="17" height="14" rx="2.5"/><path d="M14.5 5v14"/></g></symbol>
+<symbol id="i-back" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" d="M14.5 6l-6 6 6 6"/></symbol>
+<symbol id="i-git" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2.5a9.5 9.5 0 0 0-3 18.5c.5.1.6-.2.6-.5v-1.8c-2.6.6-3.2-1.1-3.2-1.1-.4-1.1-1-1.4-1-1.4-.9-.6 0-.6 0-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1 2.8.8.1-.6.3-1 .6-1.3-2.1-.2-4.3-1-4.3-4.7 0-1 .4-1.9 1-2.6-.1-.2-.4-1.2.1-2.5 0 0 .8-.3 2.6 1a9 9 0 0 1 4.8 0c1.8-1.3 2.6-1 2.6-1 .5 1.3.2 2.3.1 2.5.6.7 1 1.6 1 2.6 0 3.7-2.2 4.5-4.3 4.7.3.3.6.9.6 1.8v2.7c0 .3.2.6.7.5A9.5 9.5 0 0 0 12 2.5z"/></symbol>
+</svg>
 <header class="site-header">
-  <nav class="wrap nav" aria-label="Main">
-    <a class="brand" href="/whydunit/"><img src="/whydunit/favicon.png" width="28" height="28" alt=""><span>Whydunit</span></a>
-    <ul class="nav-links">
-      <li><a href="/whydunit/#how">How it works</a></li>
-      <li><a href="/whydunit/#safety">Safety</a></li>
-      <li><a href="/whydunit/#faq">FAQ</a></li>
-      <li><a href="/whydunit/support/">Support</a></li>
-    </ul>
-    <a class="button small" href="/whydunit/download/">Download</a>
-  </nav>
+<nav class="nav" aria-label="Main">
+<a class="brand" href="/whydunit/"><img src="/whydunit/favicon.png" width="22" height="22" alt=""><span>Whydunit</span></a>
+<ul class="nav-links">
+<li><a href="/whydunit/#how">How it works</a></li>
+<li><a href="/whydunit/#safety">Safety</a></li>
+<li><a href="/whydunit/#faq">FAQ</a></li>
+</ul>
+<a rel="noopener noreferrer" class="button secondary small src" href="https://github.com/EverydayOpen/whydunit"><svg aria-hidden="true"><use href="#i-git"/></svg>Source</a>
+<a class="button small" href="/whydunit/download/">Download</a>
+</nav>
 </header>
 <main id="main" tabindex="-1">
-<article class="wrap narrow prose center"><h1>Coming soon</h1><p>Whydunit 1.0 isn't available yet. The <a href="/whydunit/changelog/">changelog</a> and its <a href="/whydunit/feed.xml">RSS feed</a> will say when it is.</p><p>Want to try it now? The <a href="https://github.com/EverydayOpen/whydunit/releases">unsigned beta</a> is on GitHub. Right-click it and choose Open the first time.</p></article>
+<article class="wrap read prose center download">
+<div class="finale mini"><div class="panel"><img class="icon" src="/whydunit/icon.png" width="128" height="128" alt="" data-tilt></div></div>
+<p class="eyebrow">Download</p>
+<h1>Coming soon</h1>
+<p class="lede">Whydunit 1.0 isn't available yet. The <a href="/whydunit/changelog/">changelog</a> and its <a href="/whydunit/feed.xml">RSS feed</a> will say when it is.</p>
+<p class="actions"><a rel="noopener noreferrer" class="button" href="https://github.com/EverydayOpen/whydunit/releases"><svg aria-hidden="true"><use href="#i-down"/></svg><span class="sep" aria-hidden="true"></span>Try the beta</a></p>
+<p class="facts">Free · macOS 15 or later · Apple silicon and Intel</p>
+<ol class="steps">
+<li><h3>Open the disk image</h3><p>Download the beta's DMG from GitHub and double-click it.</p></li>
+<li><h3>Drag to Applications</h3><p>Drag Whydunit onto the Applications folder.</p></li>
+<li><h3>Allow it once</h3><p>The beta isn't notarized yet, so macOS blocks it the first time. Open it, then click Open Anyway in System Settings › Privacy &amp; Security.</p></li>
+</ol>
+<p class="official"><svg aria-hidden="true"><use href="#i-check"/></svg><span>The only official site is https://everydayopen.github.io/whydunit. Downloads come only from github.com/EverydayOpen/whydunit/releases.</span></p>
+</article>
 
 </main>
 <footer class="site-footer">
-  <div class="wrap">
-    <div class="footer-cols">
-      <div>
-        <h2>Product</h2>
-        <ul>
-          <li><a href="/whydunit/download/">Download</a></li>
-          <li><a href="/whydunit/changelog/">Changelog</a></li>
-          <li><a href="/whydunit/guides/icloud-waiting-to-upload/">Guide: Waiting to Upload</a></li>
-        </ul>
-      </div>
-      <div>
-        <h2>Help</h2>
-        <ul>
-          <li><a href="/whydunit/support/">Support</a></li>
-          <li><a href="https://github.com/EverydayOpen/whydunit/issues">Report a problem</a></li>
-        </ul>
-      </div>
-      <div>
-        <h2>Legal</h2>
-        <ul>
-          <li><a href="/whydunit/privacy/">Privacy</a></li>
-          <li><a href="/whydunit/terms/">Terms</a></li>
-        </ul>
-      </div>
-    </div>
-    <p class="fine">© 2026 Whydunit. Free, with no account and no tracking.</p>
-    <p class="fine">Mac, macOS and iCloud are trademarks of Apple Inc., registered in the U.S. and other countries and regions. Whydunit is not affiliated with or endorsed by Apple Inc.</p>
-  </div>
+<div class="wrap">
+<div class="footer-cols">
+<div class="footer-brand">
+<a class="brand" href="/whydunit/"><img src="/whydunit/favicon.png" width="22" height="22" alt=""><span>Whydunit</span></a>
+<p>Finds out why iCloud Drive files won't upload, and fixes them safely.</p>
+</div>
+<div>
+<h2>Product</h2>
+<ul>
+<li><a href="/whydunit/download/">Download</a></li>
+<li><a href="/whydunit/changelog/">Changelog</a></li>
+<li><a href="/whydunit/guides/icloud-waiting-to-upload/">Guide: Waiting to Upload</a></li>
+</ul>
+</div>
+<div>
+<h2>Help</h2>
+<ul>
+<li><a href="/whydunit/support/">Support</a></li>
+<li><a rel="noopener noreferrer" href="https://github.com/EverydayOpen/whydunit/issues">Report a problem</a></li>
+<li><a rel="noopener noreferrer" href="https://github.com/EverydayOpen/whydunit">Source code</a></li>
+</ul>
+</div>
+<div>
+<h2>Legal</h2>
+<ul>
+<li><a href="/whydunit/privacy/">Privacy</a></li>
+<li><a href="/whydunit/terms/">Terms</a></li>
+</ul>
+</div>
+</div>
+<p class="official"><svg aria-hidden="true"><use href="#i-check"/></svg><span>The only official site is https://everydayopen.github.io/whydunit. Downloads come only from github.com/EverydayOpen/whydunit/releases.</span></p>
+<p class="fine"><span>© 2026 Whydunit. Free, with no account and no tracking.</span> <code>beta</code></p>
+<p class="fine">Mac, macOS and iCloud are trademarks of Apple Inc., registered in the U.S. and other countries and regions. Whydunit is not affiliated with or endorsed by Apple Inc.</p>
+</div>
 </footer>
 </body>
 </html>
